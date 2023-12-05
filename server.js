@@ -17,7 +17,7 @@ connectDB();
 // To connect to the database
 app.use(credentials);
 
-app.use(cors({ origin: ['https://glittery-bublanina-7fb097.netlify.app'], credentials: true }))
+app.use(cors({ origin: ['https://collegecentral.netlify.app/'], credentials: true }))
 //TO handle CORS ----> See Readme for Explanation of CORS
 
 app.use(express.urlencoded({extended: false}));
