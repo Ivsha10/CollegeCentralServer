@@ -63,7 +63,7 @@ const handleGetCollegeLogs = async (req, res) => {
 const getLastCollege = async (req, res) => {
     let colleges = await College.find().exec();
     const last = colleges.pop();
-
+    const name = last.name;
     return res.json(last);
 }
 
