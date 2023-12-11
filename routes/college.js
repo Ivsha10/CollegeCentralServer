@@ -7,7 +7,7 @@ const multer = require('multer');
 const upload = multer({ dest: 'files/applicationProcess' });
 
 router.get('/logs', collegeController.handleGetCollegeLogs);
-
+router.get('/last', collegeController.getLastCollege);
 router.post('/', upload.single('file'), collegeController.handleNewCollege);
 
 module.exports = router;

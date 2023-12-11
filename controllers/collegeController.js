@@ -60,5 +60,12 @@ const handleGetCollegeLogs = async (req, res) => {
     res.json({collegeLogs: collegeLogs, dbLength: colleges.length})
 }
 
+const getLastCollege = async (req, res) => {
+    let colleges = await College.find().exec();
+    const last = colleges.pop();
 
-module.exports = {handleNewCollege, handleGetCollegeLogs}
+    return res.json(last);
+}
+
+
+module.exports = {handleNewCollege, handleGetCollegeLogs, getLastCollege }
