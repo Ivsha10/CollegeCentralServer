@@ -29,7 +29,7 @@ const handleNewCollege = async (req, res) => {
                 academicRanking:parseInt(obj.academicRanking),
                 schoolWebsite:obj.schoolWebsite,
                 avgScholarship:parseInt(obj.avgScholarship),
-                majors: obj.majors?.split(' '), 
+                majors: obj.majors?.split(','), 
                 twoYear: obj.twoYear === 'true' ? true : 'false',
                 religion: obj.religion,
                 relInfluence: obj.relInfluence,
@@ -67,5 +67,10 @@ const getLastCollege = async (req, res) => {
     return res.json(name);
 }
 
+const getAllColleges = async (req, res) => {
+    let colleges = await College.find().exec();
+    return res.json(colleges);
 
-module.exports = {handleNewCollege, handleGetCollegeLogs, getLastCollege }
+}
+
+module.exports = {handleNewCollege, handleGetCollegeLogs, getLastCollege, getAllColleges }
