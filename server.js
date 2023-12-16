@@ -17,8 +17,8 @@ connectDB();
 // To connect to the database
 app.use(credentials);
 
-//app.use(cors({ origin: ['https://collegecentral.netlify.app'], credentials: true }))
-app.use(cors({ origin: ['http://localhost:3000'], credentials: true }))
+app.use(cors({ origin: ['https://collegecentral.netlify.app'], credentials: true }))
+//app.use(cors({ origin: ['http://localhost:3000'], credentials: true }))
 //TO handle CORS ----> See Readme for Explanation of CORS
 
 app.use(express.urlencoded({extended: false}));
