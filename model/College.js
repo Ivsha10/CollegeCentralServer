@@ -28,7 +28,7 @@ const collegeSchema = new Schema({
     sunnyDays: {type: Number, required: true},
     rainyDays: {type: Number, required: true},
     severeWeather: {type: Number, required: true},
-    pdf: {type: String},
+    facilities: []
 })
 
 const College = mongoose.model('College', collegeSchema);
