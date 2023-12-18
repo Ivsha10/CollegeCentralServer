@@ -13,9 +13,9 @@ const upload = multer({
 });
 
 router.get('/', collegeController.getAllColleges);
-router.get('/:id', collegeController.getCollege);
 router.get('/logs', collegeController.handleGetCollegeLogs);
 router.get('/last', collegeController.getLastCollege);
+router.get('/:id', collegeController.getCollege);
 router.post('/', collegeController.handleNewCollege);
 router.put('/', collegeController.updateCollege);
 router.put('/facilities', upload.array('images'), collegeController.addFacilities);

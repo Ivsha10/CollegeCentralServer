@@ -18,8 +18,8 @@ connectDB();
 app.use(credentials);
 
 app.use(cors({ origin: ['https://collegecentral.netlify.app'], credentials: true }))
-/* app.use(cors({ origin: ['http://localhost:3000'], credentials: true }))
- *///TO handle CORS ----> See Readme for Explanation of CORS
+/* app.use(cors({ origin: ['http://localhost:3000'], credentials: true })) */
+//TO handle CORS ----> See Readme for Explanation of CORS
 
 app.use(express.urlencoded({extended: false}));
 //To handle Form data ---> This will be important as we will need to send form data such as username, password, pictures etc
@@ -42,8 +42,9 @@ app.use(verifyJWT);
 app.use('/users',  require('./routes/user'));
 app.use('/college',  require('./routes/college'));
 
+const estimator = require('./estimator/estimator');
 
-
+/* estimator.estimateScores(); */
 
 mongoose.connection.once('open', ()=> {
     console.log('Connected to MongoDB');
