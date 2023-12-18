@@ -17,8 +17,9 @@ connectDB();
 // To connect to the database
 app.use(credentials);
 
-app.use(cors({ origin: ['https://collegecentral.netlify.app'], credentials: true }))
-/* app.use(cors({ origin: ['http://localhost:3000'], credentials: true })) */
+app.use(cors({ origin: ['https://collegecentral.netlify.app'], credentials: true })) 
+/* app.use(cors({ origin: ['http://localhost:3000' ], credentials: true }))  */
+
 //TO handle CORS ----> See Readme for Explanation of CORS
 
 app.use(express.urlencoded({extended: false}));
@@ -44,15 +45,15 @@ app.use('/college',  require('./routes/college'));
 
 const estimator = require('./estimator/estimator');
 
-/* estimator.estimateScores(); */
+ estimator.estimateScores(); 
 
 mongoose.connection.once('open', ()=> {
-    console.log('Connected to MongoDB');
+    console.log(yellow, 'Connected to MongoDB');
 }) 
 
 
 
 
 
-app.listen(PORT, () => console.log(`CONNECTION ESTABLISHED!`));
+app.listen(PORT, () => console.log(green, `CONNECTION ESTABLISHED!`));
 // Starting the server! 

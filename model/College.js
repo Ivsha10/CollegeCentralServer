@@ -29,7 +29,8 @@ const collegeSchema = new Schema({
     rainyDays: {type: Number, required: true},
     severeWeather: {type: Number, required: true},
     facilities: [],
-    tuitionScore: Number
+    tuitionScore: Number,
+    academicScore: Number,
 })
 
 const College = mongoose.model('College', collegeSchema);

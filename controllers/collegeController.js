@@ -102,7 +102,7 @@ const getAllColleges = async (req, res) => {
 const getCollege = async (req, res) => {
     try {
         const id = req.params.id;
-        console.log(id);
+        console.log('ID', id);
         const foundCollege = await College.findById(id).exec();
         res.json(foundCollege);
     } catch (error) {
@@ -115,8 +115,11 @@ const updateCollege = async (req, res) => {
 
     try {
         const obj = req.body;
-        const name = req.body.name;
-        let foundCollege = await College.findOne({ name: name }).exec();
+        const id = req.params.id;
+        console.log(obj);
+        const sports = obj.sports;
+        console.log(sports);
+        let foundCollege = await College.findById(id).exec();
         if (foundCollege) {
     
             foundCollege.name = obj.name;
@@ -131,12 +134,12 @@ const updateCollege = async (req, res) => {
             foundCollege.association = obj.association;
             foundCollege.division = obj.division;
             foundCollege.conference = obj.conference;
-            foundCollege.sports = obj.sports?.split(' ');
+            foundCollege.sports = obj.sports;
             foundCollege.sportsWebsite = obj.sportsWebsite;
             foundCollege.academicRanking = parseInt(obj.academicRanking);
             foundCollege.schoolWebsite = obj.schoolWebsite;
             foundCollege.avgScholarship = parseInt(obj.avgScholarship);
-            foundCollege.majors = obj.majors?.split('\n');
+            foundCollege.majors = obj.majors;
             foundCollege.twoYear = (obj.twoYear === 'true' ? true : false);
             foundCollege.religion = obj.religion;
             foundCollege.relInfluence = obj.relInfluence;
@@ -146,14 +149,13 @@ const updateCollege = async (req, res) => {
             foundCollege.severeWeather = parseFloat(obj.severeWeather / 100)
     
             let r = await foundCollege.save();
-    
-            res.status(200).json({ 'message': `${name} sucessfully updated!`, 'length': College.length });
+            res.status(200).json({ 'message': `${foundCollege.name} sucessfully updated!`, 'length': College.length });
         } else {
-            console.log('duplicate');
             return res.status(409).json('This college does not exist in our database');
         }  
     } catch (error) {
-        console.log('error')
+        console.log(error);
+
     }
 
 }
