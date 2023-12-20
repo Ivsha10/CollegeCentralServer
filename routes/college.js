@@ -18,6 +18,6 @@ router.get('/last', collegeController.getLastCollege);
 router.get('/:id', collegeController.getCollege);
 router.post('/', collegeController.handleNewCollege);
 router.put('/:id', collegeController.updateCollege);
-router.put('/facilities', upload.array('images'), collegeController.addFacilities);
+router.put('/facilities/:id', upload.array('images'), collegeController.addFacilities);
 
 module.exports = router;

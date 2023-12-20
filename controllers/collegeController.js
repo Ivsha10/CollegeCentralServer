@@ -10,59 +10,59 @@ AWS.config.update({
 
 
 const handleNewCollege = async (req, res) => {
-    
+
     try {
         const file = req?.file?.filename;
-    const obj = req.body;
-    const name = req.body.name;
-    const duplicate = await College.findOne({ name: name }).exec();
-    console.log(obj.user);
-    if (!duplicate) {
-        const result = await College.create(
-            {
+        const obj = req.body;
+        const name = req.body.name;
+        const duplicate = await College.findOne({ name: name }).exec();
+        console.log(obj.user);
+        if (!duplicate) {
+            const result = await College.create(
+                {
+                    name: obj.name,
+                    address: obj.address,
+                    city: obj.city,
+                    state: obj.state,
+                    zip: obj.zip,
+                    tuitionFee: parseInt(obj.tuitionFee),
+                    acceptanceRate: parseFloat(obj.acceptanceRate / 100),
+                    pdf: file,
+                    studentPopulation: parseInt(obj.studentPopulation),
+                    campusPopulation: parseInt(obj.campusPopulation),
+                    association: obj.association,
+                    division: obj.division,
+                    conference: obj.conference,
+                    sports: obj.sports?.split(' '),
+                    sportsWebsite: obj.sportsWebsite,
+                    academicRanking: parseInt(obj.academicRanking),
+                    schoolWebsite: obj.schoolWebsite,
+                    avgScholarship: parseInt(obj.avgScholarship),
+                    majors: obj.majors?.split('\n'),
+                    twoYear: obj.twoYear === 'true' ? true : 'false',
+                    religion: obj.religion,
+                    relInfluence: obj.relInfluence,
+                    avgTemp: parseInt(obj.avgTemp),
+                    sunnyDays: parseInt(obj.sunnyDays),
+                    rainyDays: parseInt(obj.rainyDays),
+                    severeWeather: parseFloat(obj.severeWeather / 100)
+
+                })
+            await CollegeLog.create({
                 name: obj.name,
-                address: obj.address,
-                city: obj.city,
-                state: obj.state,
-                zip: obj.zip,
-                tuitionFee: parseInt(obj.tuitionFee),
-                acceptanceRate: parseFloat(obj.acceptanceRate / 100),
-                pdf: file,
-                studentPopulation: parseInt(obj.studentPopulation),
-                campusPopulation: parseInt(obj.campusPopulation),
-                association: obj.association,
-                division: obj.division,
-                conference: obj.conference,
-                sports: obj.sports?.split(' '),
-                sportsWebsite: obj.sportsWebsite,
-                academicRanking: parseInt(obj.academicRanking),
-                schoolWebsite: obj.schoolWebsite,
-                avgScholarship: parseInt(obj.avgScholarship),
-                majors: obj.majors?.split('\n'),
-                twoYear: obj.twoYear === 'true' ? true : 'false',
-                religion: obj.religion,
-                relInfluence: obj.relInfluence,
-                avgTemp: parseInt(obj.avgTemp),
-                sunnyDays: parseInt(obj.sunnyDays),
-                rainyDays: parseInt(obj.rainyDays),
-                severeWeather: parseFloat(obj.severeWeather / 100)
-
+                addedBy: obj.user,
+                dateAdded: new Date()
             })
-        await CollegeLog.create({
-            name: obj.name,
-            addedBy: obj.user,
-            dateAdded: new Date()
-        })
 
-        res.status(200).json({ 'message': `${name} sucessfully added to the database!`, 'length': College.length });
-    } else {
-        console.log('duplicate');
-        return res.status(409).json('This college already exists in our database!');
-    }
+            res.status(200).json({ 'message': `${name} sucessfully added to the database!`, 'length': College.length });
+        } else {
+            console.log('duplicate');
+            return res.status(409).json('This college already exists in our database!');
+        }
     } catch (error) {
         console.log('ERROR');
     }
-    
+
 
 }
 const handleGetCollegeLogs = async (req, res) => {
@@ -70,12 +70,12 @@ const handleGetCollegeLogs = async (req, res) => {
     try {
         const colleges = await College.find().exec();
         const collegeLogs = await CollegeLog.find().exec();
-    
+
         res.json({ collegeLogs: collegeLogs, dbLength: colleges.length })
     } catch (error) {
         console.log('MAJOR ERROR');
     }
-   
+
 }
 
 const getLastCollege = async (req, res) => {
@@ -93,10 +93,10 @@ const getAllColleges = async (req, res) => {
     try {
         let colleges = await College.find().exec();
         return res.json(colleges);
-    } catch (err){
+    } catch (err) {
         console.log('ERROE');
     }
-    
+
 }
 
 const getCollege = async (req, res) => {
@@ -108,7 +108,7 @@ const getCollege = async (req, res) => {
     } catch (error) {
         console.log('getCollegeError');
     }
- 
+
 }
 
 const updateCollege = async (req, res) => {
@@ -121,7 +121,7 @@ const updateCollege = async (req, res) => {
         console.log(sports);
         let foundCollege = await College.findById(id).exec();
         if (foundCollege) {
-    
+
             foundCollege.name = obj.name;
             foundCollege.address = obj.address;
             foundCollege.city = obj.city;
@@ -147,12 +147,12 @@ const updateCollege = async (req, res) => {
             foundCollege.sunnyDays = parseInt(obj.sunnyDays);
             foundCollege.rainyDays = parseInt(obj.rainyDays);
             foundCollege.severeWeather = parseFloat(obj.severeWeather / 100)
-    
+
             let r = await foundCollege.save();
             res.status(200).json({ 'message': `${foundCollege.name} sucessfully updated!`, 'length': College.length });
         } else {
             return res.status(409).json('This college does not exist in our database');
-        }  
+        }
     } catch (error) {
         console.log(error);
 
@@ -164,7 +164,7 @@ const addFacilities = async (req, res) => {
 
 
     let images = await req.files;
-    const id = req.body.id;
+    const id = req.params.id;
 
     const foundCollege = await College.findById(id).exec();
 
@@ -201,40 +201,45 @@ const addFacilities = async (req, res) => {
         });
     }
 
-    UPLOAD(0);
 
 
-    if (Array.isArray(facilities)) {
+    try {
+        if (Array.isArray(facilities)) {
 
-        for (let i = 0; i < facilities.length; i++) {
-            let facility = JSON.parse(facilities[i]);
-            facilities[i] = facility;
+            for (let i = 0; i < facilities.length; i++) {
+                let facility = JSON.parse(facilities[i]);
+                facilities[i] = facility;
 
+                let currentFacilityNames = foundCollege.facilities.map(fac => fac.name);
+                console.log(currentFacilityNames);
+                if (!currentFacilityNames.includes(facility.name)) {
+                    foundCollege.facilities.push(facility);
+                } else {
+                    console.log('Facility already exists!');
+                    return res.status(409).json({ 'error': 'Facility already exists in our database' })
+                }
+
+            }
+
+        } else {
+            let facility = JSON.parse(facilities);
             let currentFacilityNames = foundCollege.facilities.map(fac => fac.name);
-            console.log(currentFacilityNames);
             if (!currentFacilityNames.includes(facility.name)) {
                 foundCollege.facilities.push(facility);
             } else {
                 console.log('Facility already exists!');
+                return res.status(409).json({ 'error': 'Facility already exists in our database' })
             }
-
         }
-
-    } else {
-        let facility = JSON.parse(facilities);
-        let currentFacilityNames = foundCollege.facilities.map(fac => fac.name);
-        if (!currentFacilityNames.includes(facility.name)) {
-            foundCollege.facilities.push(facility);
-        } else {
-            console.log('Facility already exists!');
-        }
+    } catch (error) {
+        return res.sendStatus(500);    
     }
 
 
+    await foundCollege.save();
+    UPLOAD(0);
 
-
-    let result = await foundCollege.save();
-
+    return res.status(200).json({'message': `Facilities added successfully!`, 'facilities':foundCollege.facilities});
 
 
     const getImageDemo = () => {
@@ -248,7 +253,6 @@ const addFacilities = async (req, res) => {
     }
 
 
-    res.status(200).json(getImageDemo());
 
 
 
