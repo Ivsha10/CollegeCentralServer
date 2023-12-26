@@ -10,7 +10,10 @@ const userSchema = new Schema({
     roles: ['admin', 'user,','editor'], 
     image: {type: String, require: true},
     invoices: [],
-    refreshToken: String
+    refreshToken: String,
+    friends:[],
+    sentFriendRequests:[],
+    receivedFriendRequests:[]
 })
 
 const User = mongoose.model('User', userSchema);

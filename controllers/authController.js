@@ -24,10 +24,13 @@ const handleSignIn = async (req, res) => {
             )
 
             foundUser.refreshToken = refreshToken;
+            const id = foundUser._id;
+            const sentFriendRequests = foundUser.sentFriendRequests;
+            const receivedFriendRequests = foundUser.receivedFriendRequests;
             const result = foundUser.save();
 
             res.cookie('jwt', refreshToken, { httpOnly: true, sameSite: 'None', secure: true, maxAge: 1000 * 60 * 60 * 24 });
-            res.json({'accessToken': accessToken, 'message':'Signed In Succesfully', 'roles':foundUser?.roles});
+            res.json({'accessToken': accessToken, 'message':'Signed In Succesfully', 'roles':foundUser?.roles, "id":id, 'sentFriendRequests': sentFriendRequests, 'receivedFriendRequests': receivedFriendRequests});
             console.log('Signed In');
         } else {
             return res.sendStatus(403);
