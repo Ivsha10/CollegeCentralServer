@@ -75,83 +75,70 @@ server.listen(PORT, () => console.log(green, `CONNECTION ESTABLISHED!`));
 //Websocekts!
 const io = new Server(server, {
     cors: {
-        origin: ['https://collegecentral2.netlify.app']
+        origin: ['https://collegecentral2.netlify.app',],
     }
 })
 
+const socketController = require('./controllers/socketController');
 
 io.on('connection', socket => {
 
-    socket.on('welcome', async (members) => {
+    console.log(`${socket.id} connected!\n`)
+    socket.emit('connected', socket.id);
+
+    socket.on('setUserId', async (userDbId) => {
+        await socketController.setUserId(socket.id, userDbId);
+    });
 
 
+
+    socket.on('joinRoom', async (roomObj) => {
+        await socketController.joinRoom(socket, roomObj);
     })
-    let ID;
-    socket.on('room', async ({ user, members }) => {
 
-        let query = { members: { $all: members } };
-        let foundChat = await ChatRoom.findOne(query).exec();
-        if (!foundChat) {
 
-            //Crete a new chat
-            console.log('NEW CHAT CREATED');
-            foundChat = new ChatRoom({
-                members: members,
-                messages: []
-            });
-
-            await foundChat.save();
-        }
-
-        const id = foundChat.id;
-        ID = id;
-        const messages = foundChat.messages;
-        const friend1 = await User.findById(members[0]);
-        const friend2 = await User.findById(members[1]);
-
-        let friends = [friend1.username, friend2.username];
-        if (id) {
-            socket.emit('welcome', { id, messages, friends });
-        } else {
-            console.log('no')
-        }
-        socket.join(id);
-        console.log(`${user} joined the room ${id}`)
-    })
 
     socket.on('message', async ({ message, id }) => {
 
-        let foundChat = await ChatRoom.findById(id);
+        await socketController.handleMessage(io, message, id);
 
-        let time = new Intl.DateTimeFormat('default', {
-            hour: 'numeric',
-            minute: 'numeric'
-        }).format(new Date());
-        let from = message.from;
-        let content = message.message;
-        let newMSg = {
-            from: from,
-            message: content,
-            time: time
-        }
-        message = newMSg;
-        io.to(id).emit('message', { message });
-        socket.broadcast.emit('notification', { message });
-        foundChat.messages.push({ ...message, time });
-        await foundChat.save();
-        console.log(message);
+    })
+
+    socket.on('roomRefresh', (roomId) => {
+        socketController.handleRoomRefresh(io, socket, roomId)
     })
 
     socket.on('activity', (data) => {
-        if (data === true) socket.broadcast.to(ID).emit('activity', 'Typing...')
-        else socket.broadcast.to(ID).emit('activity', '');
+
     })
 
     socket.on('leave', (id) => {
-        console.log('LEFT');
+        socket.leave(id);
+        console.log(`The user left the room ${id}`)
     });
 
+    //Video Chat listeners and emitters start
+    
+    socket.on('endCall', ()=> {
+        socket.broadcast.emit('callEnded');
+    })
+
+    socket.on('callUser', async data => {
+        await socketController.handleCallUser(io, data);
+    })
+    socket.on('answerCall', (data) => {
+        socketController.handleAnswerCall(io, data);
+    })
+
+    socket.on('declineCall',  async (friendId) => {
+        await socketController.handleDeclineCall(io, friendId);
+    })
+
+
+    //Video Chat listeners and emitters end
+
+
     socket.on('disconnect', () => {
-        console.log(socket.id);
+        console.log(socket.id, 'Disconnected!\n');
     })
 })

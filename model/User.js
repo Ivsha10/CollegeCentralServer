@@ -13,7 +13,8 @@ const userSchema = new Schema({
     refreshToken: String,
     friends:[],
     sentFriendRequests:[],
-    receivedFriendRequests:[]
+    receivedFriendRequests:[],
+    socketId: String
 })
 
 const User = mongoose.model('User', userSchema);
