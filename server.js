@@ -42,6 +42,7 @@ app.use('/images', express.static('images'));
 
 app.use(cookieParser());
 // To handle cookie requests
+
 app.use('/', require('./routes/root'));
 app.use('/auth', require('./routes/auth'));
 app.use('/register', require('./routes/register'));
@@ -75,7 +76,7 @@ server.listen(PORT, () => console.log(green, `CONNECTION ESTABLISHED!`));
 //Websocekts!
 const io = new Server(server, {
     cors: {
-        origin: ['https://collegecentral2.netlify.app',],
+        origin: ['https://collegecentral2.netlify.app'],
     }
 })
 
@@ -105,33 +106,33 @@ io.on('connection', socket => {
     })
 
     socket.on('roomRefresh', (roomId) => {
-        socketController.handleRoomRefresh(io, socket, roomId)
+        socketController.handleRoomRejoin(io, socket, roomId)
     })
 
     socket.on('activity', (data) => {
-
+        socketController.handleActivity(socket, data);
     })
 
     socket.on('leave', (id) => {
         socket.leave(id);
-        console.log(`The user left the room ${id}`)
+        socket.emit('roomLeft', id);
     });
 
     //Video Chat listeners and emitters start
-    
-    socket.on('endCall', ()=> {
-        socket.broadcast.emit('callEnded');
-    })
 
-    socket.on('callUser', async data => {
-        await socketController.handleCallUser(io, data);
+    socket.on('callUser', async (data) => {
+        await socketController.handleCallUser(io, socket, data);
     })
     socket.on('answerCall', (data) => {
-        socketController.handleAnswerCall(io, data);
+        socketController.handleAnswerCall(socket, data);
     })
 
-    socket.on('declineCall',  async (friendId) => {
-        await socketController.handleDeclineCall(io, friendId);
+    socket.on('declineCall',  async (data) => {
+        await socketController.handleDeclineCall(io, data);
+    })
+
+    socket.on('endCall', (data)=> {
+       socketController.handleEndCall(io, data)
     })
 
 

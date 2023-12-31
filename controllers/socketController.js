@@ -5,7 +5,7 @@ const setUserId = async (socketId, dbId) => {
 
     const user = await User.findById(dbId);
 
-    if(user) {
+    if (user) {
         user.socketId = socketId;
         await user.save();
         console.log(`${socketId} added to user ${user.username} in db\n`);
@@ -17,7 +17,7 @@ const setUserId = async (socketId, dbId) => {
 
 const joinRoom = async (socket, roomObj) => {
 
-    
+
 
     const userDbId = roomObj.userDbId;
     const chatMembers = roomObj.chatMembers;
@@ -33,13 +33,13 @@ const joinRoom = async (socket, roomObj) => {
 
     let foundChat = await ChatRoom.findOne(query).exec();
 
-    if(!foundChat) {
-        
-        foundChat = new ChatRoom({members: chatMembers});
+    if (!foundChat) {
+
+        foundChat = new ChatRoom({ members: chatMembers });
         await foundChat.save();
 
         console.log('New Chat Created!');
-        
+
     }
 
     const chatId = foundChat.id;
@@ -50,20 +50,26 @@ const joinRoom = async (socket, roomObj) => {
     socket.join(chatId);
     console.log(`${joinedUser.username} joined room ${chatId}!\n`);
 
-    socket.emit('chatRoom', {chatId: chatId, messages: messages, friendId:friendDbId,  friendName: friendName});
+    socket.emit('chatRoom', { chatId: chatId, messages: messages, friendId: friendDbId, friendName: friendName });
 
 }
-const handleRoomRefresh =  (io, socket, roomId) => {
+const handleRoomRejoin = (io, socket, roomId) => {
 
     const isSocketInRoom = io.sockets.adapter.rooms[roomId]?.sockets[socket.id];
-    if(!isSocketInRoom) {
+    if (!isSocketInRoom) {
         socket.join(roomId);
         console.log(` ${socket.id} rejoined room ${roomId}!\n`);
-
     }
 
 }
+const handleActivity = (socket, data) => {
+    const activity = data.activity;
+    const roomId = data.roomId;
+
+    socket.to(roomId).emit('activity', activity);
+}
 const handleMessage = async (io, message, roomId) => {
+    console.log(message);
 
 
     let time = new Intl.DateTimeFormat('default', {
@@ -79,20 +85,21 @@ const handleMessage = async (io, message, roomId) => {
     }
     let foundChat = await ChatRoom.findById(roomId);
 
-    
-   let userId =  foundChat.members.forEach(async (memberId) => {
-        let user = (await User.findById(memberId).exec());
-        if(user !== from) return user.id
-    })
 
-    
+
+
+
     message = newMSg;
     io.to(roomId).emit('message', { message });
-    io.to(userId).emit('notification', { message });
+
+    const ids = foundChat.members;
+    let friendId = '';
+
+  
+
     foundChat.messages.push({ ...message, time });
     await foundChat.save();
-    console.log(message);
-} 
+}
 
 //Continue with chat features
 
@@ -100,26 +107,46 @@ const handleMessage = async (io, message, roomId) => {
 
 // VideoChat functions
 
-const handleCallUser = async (io, data) => {
+const handleCallUser = async (io, socket, data) => {
 
-    console.log(data);
-    const friendId = data.friendId;
-    const foundUser =  await User.findById(friendId).exec();
-    
-    const friendSocketId = foundUser.socketId;
-    console.log('Friend Socket Id: ', friendSocketId);
+    const userId = data.from;
 
-    io.to(friendSocketId).emit("callUser", {signal: data.signalData, from: data.from, name:data.name});
+    const chatRoomId = data.chatRoomId;
+    const foundChatRoom = await ChatRoom.findById(chatRoomId);
+    const members = foundChatRoom.members;
+
+    const friendId = members.find(id => id !== userId);
+
+    const isSocketInRoom = io.sockets.adapter.rooms[chatRoomId]?.sockets[socket.id];
+    if (!isSocketInRoom) {
+        socket.join(chatRoomId);
+        console.log(` ${socket.id} rejoined room ${chatRoomId}!\n`);
+    }
+
+    console.log(`${userId} callling ${friendId}...`);
+    socket.to(chatRoomId).emit("callUser", { signal: data.signalData, from: data.from, name: data.name });
 }
 
-const handleAnswerCall = async (io, data) => {
-    const friendId = data.to;
-    const foundFriend = await User.findById(friendId)
-    io.emit('callAccepted', data.signal);
+const handleAnswerCall = async (socket, data) => {
+
+    const chatRoomId = data.chatRoomId;
+
+    console.log('Call Accepted');
+    socket.to(chatRoomId).emit('callAccepted', data.signal);
 }
 
-const handleDeclineCall = async (io, friendId) => {
-    const foundUser =  await User.findById(friendId).exec();
-    io.to(foundUser.socketId).emit('callDeclined', 'callDeclined')
+const handleDeclineCall = async (io, data) => {
+    const chatRoomId = data.chatRoomId;
+    console.log('Call Declined');
+
+    io.in(chatRoomId).emit('callDeclined', 'callDeclined')
 }
-module.exports = {setUserId, joinRoom, handleMessage, handleRoomRefresh, handleCallUser, handleAnswerCall, handleDeclineCall };
+
+
+const handleEndCall = (io, data) => {
+    const chatRoomId = data.chatRoomId;
+    console.log('Call Ended');
+    io.in(chatRoomId).emit('callEnded', 'callDeclined')
+
+}
+module.exports = { setUserId, joinRoom, handleMessage, handleActivity, handleRoomRejoin, handleCallUser, handleAnswerCall, handleDeclineCall, handleEndCall };
