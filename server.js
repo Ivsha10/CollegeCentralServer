@@ -76,7 +76,8 @@ server.listen(PORT, () => console.log(green, `CONNECTION ESTABLISHED!`));
 //Websocekts!
 const io = new Server(server, {
     cors: {
-        origin: ['https://collegecentral2.netlify.app'],
+        /* origin: ['http://localhost:3000', 'http://127.0.0.1:3000',], */
+        origin : ['https://collegecentral2.netlify.app']
     }
 })
 
@@ -123,8 +124,8 @@ io.on('connection', socket => {
     socket.on('callUser', async (data) => {
         await socketController.handleCallUser(io, socket, data);
     })
-    socket.on('answerCall', (data) => {
-        socketController.handleAnswerCall(socket, data);
+    socket.on('callAccepted', (data) => {
+        socketController.handleAnswerCall(io, data);
     })
 
     socket.on('declineCall',  async (data) => {

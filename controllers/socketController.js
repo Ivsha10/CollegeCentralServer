@@ -95,7 +95,7 @@ const handleMessage = async (io, message, roomId) => {
     const ids = foundChat.members;
     let friendId = '';
 
-  
+
 
     foundChat.messages.push({ ...message, time });
     await foundChat.save();
@@ -110,43 +110,49 @@ const handleMessage = async (io, message, roomId) => {
 const handleCallUser = async (io, socket, data) => {
 
     const userId = data.from;
-
-    const chatRoomId = data.chatRoomId;
-    const foundChatRoom = await ChatRoom.findById(chatRoomId);
-    const members = foundChatRoom.members;
-
-    const friendId = members.find(id => id !== userId);
-
-    const isSocketInRoom = io.sockets.adapter.rooms[chatRoomId]?.sockets[socket.id];
-    if (!isSocketInRoom) {
-        socket.join(chatRoomId);
-        console.log(` ${socket.id} rejoined room ${chatRoomId}!\n`);
+    const friendId = data.friendId;
+    const foundFriend = await User.findById(friendId);
+    if (foundFriend) {
+        const friendSocketId = foundFriend.socketId;
+        console.log(`${socket.id} callling ${friendSocketId}...`);
+        socket.to(friendSocketId).emit("callUser", {from: data.from, name: data.name });        
     }
 
-    console.log(`${userId} callling ${friendId}...`);
-    socket.to(chatRoomId).emit("callUser", { signal: data.signalData, from: data.from, name: data.name });
+
 }
 
-const handleAnswerCall = async (socket, data) => {
+const handleAnswerCall = async (io, data) => {
 
-    const chatRoomId = data.chatRoomId;
-
-    console.log('Call Accepted');
-    socket.to(chatRoomId).emit('callAccepted', data.signal);
+    const friendId = data.friendId;
+    const foundFriend = await User.findById(friendId);
+    if (foundFriend) {
+        const friendSocketId = foundFriend.socketId;
+        io.to(friendSocketId).emit('callAccepted', {msg : 'Call Accepted'});
+        console.log('Accepted Call');
+    } else {
+        console.log('Cant find friend');
+    }
 }
 
 const handleDeclineCall = async (io, data) => {
-    const chatRoomId = data.chatRoomId;
-    console.log('Call Declined');
-
-    io.in(chatRoomId).emit('callDeclined', 'callDeclined')
+    const friendId = data.friendId;
+    const foundFriend = await User.findById(friendId);
+    if (foundFriend) {
+        const friendSocketId = foundFriend.socketId;
+        io.to(friendSocketId).emit('callDeclined', {});
+        console.log('Declined Call');
+    }
 }
 
 
-const handleEndCall = (io, data) => {
-    const chatRoomId = data.chatRoomId;
-    console.log('Call Ended');
-    io.in(chatRoomId).emit('callEnded', 'callDeclined')
+const handleEndCall = async (io, data) => {
+    const friendId = data.friendId;
+    const foundFriend = await User.findById(friendId);
+    if (foundFriend) {
+        const friendSocketId = foundFriend.socketId;
+        io.to(friendSocketId).emit('callEnded', {});
+        console.log('ended Call');
+    }
 
 }
 module.exports = { setUserId, joinRoom, handleMessage, handleActivity, handleRoomRejoin, handleCallUser, handleAnswerCall, handleDeclineCall, handleEndCall };
