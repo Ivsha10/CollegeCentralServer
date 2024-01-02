@@ -5,6 +5,7 @@ const http = require('http');
 const server = http.createServer(app);
 
 const { Server } = require('socket.io');
+const {ExpressPeerServer} = require('peer');
 
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -48,6 +49,14 @@ app.use('/auth', require('./routes/auth'));
 app.use('/register', require('./routes/register'));
 app.use('/refresh', require('./routes/refresh'));
 
+
+const peerServer = ExpressPeerServer(server, {
+    debug: true,
+    path: '/peerserver'
+})
+
+app.use('/peerjs', peerServer);
+
 app.use(verifyJWT);
 app.use('/users', require('./routes/user'));
 app.use('/college', require('./routes/college'));
@@ -77,7 +86,7 @@ server.listen(PORT, () => console.log(green, `CONNECTION ESTABLISHED!`));
 const io = new Server(server, {
     cors: {
         /* origin: ['http://localhost:3000', 'http://127.0.0.1:3000',], */
-        origin : ['https://collegecentral2.netlify.app']
+        origin : ['https://collegecentral2.netlify.app', '']
     }
 })
 
