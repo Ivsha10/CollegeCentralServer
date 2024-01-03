@@ -5,7 +5,6 @@ const http = require('http');
 const server = http.createServer(app);
 
 const { Server } = require('socket.io');
-const {ExpressPeerServer} = require('peer');
 
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -16,9 +15,7 @@ const verifyJWT = require('./middleware/verifyJWT');
 const PORT = 3500;
 const yellow = "\x1b[33m";
 const green = "\x1b[32m";
-const red = "\x1b[31m";
 
-const ChatRoom = require('./model/ChatRoom');
 
 connectDB();
 // To connect to the database
@@ -50,12 +47,8 @@ app.use('/register', require('./routes/register'));
 app.use('/refresh', require('./routes/refresh'));
 
 
-const peerServer = ExpressPeerServer(server, {
-    debug: true,
-    path: '/peerserver'
-})
 
-app.use('/peerjs', peerServer);
+
 
 app.use(verifyJWT);
 app.use('/users', require('./routes/user'));
@@ -64,7 +57,6 @@ app.use('/profile', require('./routes/profile'));
 
 
 const estimator = require('./estimator/estimator');
-const User = require('./model/User');
 
 
 /* estimator.estimateScores();
@@ -85,8 +77,8 @@ server.listen(PORT, () => console.log(green, `CONNECTION ESTABLISHED!`));
 //Websocekts!
 const io = new Server(server, {
     cors: {
-         origin: ['http://localhost:3000', 'http://127.0.0.1:3000', `0.peerjs.com`], 
-        //origin : ['https://collegecentral2.netlify.app', `0.peerjs.com`]
+         //origin: ['http://localhost:3000', 'http://127.0.0.1:3000', ], 
+        origin : ['https://collegecentral2.netlify.app', ]
     }
 })
 
@@ -96,12 +88,12 @@ io.on('connection', socket => {
 
     console.log(`${socket.id} connected!\n`)
     socket.emit('connected', socket.id);
-
+    
     socket.on('setUserId', async (userDbId) => {
         await socketController.setUserId(socket.id, userDbId);
     });
 
-
+    
 
     socket.on('joinRoom', async (roomObj) => {
         await socketController.joinRoom(socket, roomObj);

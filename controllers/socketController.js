@@ -110,12 +110,12 @@ const handleMessage = async (io, message, roomId) => {
 const handleCallUser = async (io, socket, data) => {
 
     const userId = data.from;
-    const friendId = data.friendId;
+    const friendId = data.userToCall;
     const foundFriend = await User.findById(friendId);
     if (foundFriend) {
         const friendSocketId = foundFriend.socketId;
-        console.log(`${socket.id} callling ${friendSocketId}...`);
-        socket.to(friendSocketId).emit("callUser", {from: data.from, name: data.name });        
+        console.log(`${userId} calling ${friendSocketId}`);
+        socket.to(friendSocketId).emit("callUser", { from: data.from, name: data.name, signal: data.signalData });
     }
 
 
@@ -123,15 +123,11 @@ const handleCallUser = async (io, socket, data) => {
 
 const handleAnswerCall = async (io, data) => {
 
-    const friendId = data.friendId;
-    const foundFriend = await User.findById(friendId);
-    if (foundFriend) {
-        const friendSocketId = foundFriend.socketId;
-        io.to(friendSocketId).emit('callAccepted', {msg : 'Call Accepted'});
-        console.log('Accepted Call');
-    } else {
-        console.log('Cant find friend');
-    }
+    const friendSocketId = data.to;
+
+    io.to(friendSocketId).emit('callAccepted', data.signal);
+    console.log('Accepted Call');
+
 }
 
 const handleDeclineCall = async (io, data) => {
@@ -146,13 +142,24 @@ const handleDeclineCall = async (io, data) => {
 
 
 const handleEndCall = async (io, data) => {
-    const friendId = data.friendId;
-    const foundFriend = await User.findById(friendId);
-    if (foundFriend) {
-        const friendSocketId = foundFriend.socketId;
+    console.log(data);
+    const isCaller = data.calling;
+
+    if(isCaller) {
+        const friendId = data.friendId;
+        const foundFriend = await User.findById(friendId);
+        if (foundFriend) {
+            const friendSocketId = foundFriend.socketId;
+            io.to(friendSocketId).emit('callEnded', {});
+            console.log('ended Call');
+        }
+    } else {
+        const friendSocketId = data.friendId;
         io.to(friendSocketId).emit('callEnded', {});
         console.log('ended Call');
     }
+ 
+    
 
 }
 module.exports = { setUserId, joinRoom, handleMessage, handleActivity, handleRoomRejoin, handleCallUser, handleAnswerCall, handleDeclineCall, handleEndCall };
