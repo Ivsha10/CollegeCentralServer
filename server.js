@@ -27,8 +27,8 @@ connectDB();
 
 app.use(credentials);
 
-app.use(cors({ origin: ['https://collegecentral.netlify.app', 'https://collegecentral2.netlify.app', `0.peerjs.com`], credentials: true })) 
-//app.use(cors({ origin: ['http://localhost:3000', 'http://127.0.0.1:3000', '10.0.13.198:3000'], credentials: true }))
+//app.use(cors({ origin: ['https://collegecentral.netlify.app', 'https://collegecentral2.netlify.app', `0.peerjs.com`], credentials: true })) 
+app.use(cors({ origin: ['http://localhost:3000', 'http://127.0.0.1:3000', '10.0.13.198:3000'], credentials: true }))
 
 //TO handle CORS ----> See Readme for Explanation of CORS
 
@@ -85,8 +85,8 @@ server.listen(PORT, () => console.log(green, `CONNECTION ESTABLISHED!`));
 //Websocekts!
 const io = new Server(server, {
     cors: {
-        /* origin: ['http://localhost:3000', 'http://127.0.0.1:3000',], */
-        origin : ['https://collegecentral2.netlify.app', `0.peerjs.com`]
+         origin: ['http://localhost:3000', 'http://127.0.0.1:3000', `0.peerjs.com`], 
+        //origin : ['https://collegecentral2.netlify.app', `0.peerjs.com`]
     }
 })
 
