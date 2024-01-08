@@ -2,13 +2,13 @@ const User = require('../model/User');
 const bcrypt = require('bcrypt');
 
 const handleNewUser = async (req, res) => {
-    const {username, password}  = req.body;
+    const {username, password, fullName}  = req.body;
     const duplicate = await User.findOne({username: username}).exec();
     if (duplicate) return res.status(409).json({'error': 'This username already exists!'});
     const result = await User.create({
         'username': username, 
         'password': await bcrypt.hash(password, 10),
-        'fullName': null,
+        'fullName': fullName,
         'email': null,
         'image': null,
         'roles': ['user']

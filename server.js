@@ -25,7 +25,7 @@ connectDB();
 app.use(credentials);
 
 app.use(cors({ origin: ['https://collegecentral.netlify.app', 'https://collegecentral2.netlify.app'], credentials: true })) 
-//app.use(cors({ origin: ['http://localhost:3000', 'http://127.0.0.1:3000', '10.0.13.198:3000'], credentials: true }))
+//app.use(cors({ origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://10.0.12.13:3000'], credentials: true }))
 
 //TO handle CORS ----> See Readme for Explanation of CORS
 
@@ -41,7 +41,7 @@ app.use('/images', express.static('images'));
 app.use(cookieParser());
 // To handle cookie requests
 
-app.use('/', require('./routes/root'));
+app.use('/', require('./routes/root')); 
 app.use('/auth', require('./routes/auth'));
 app.use('/register', require('./routes/register'));
 app.use('/refresh', require('./routes/refresh'));
@@ -55,12 +55,9 @@ app.use('/profile', require('./routes/profile'));
 const estimator = require('./estimator/estimator');
 
 
-/* estimator.estimateScores();
+ estimator.estimateScores();
 
-setInterval(() => {
-    estimator.estimateScores();
-}, 1000 * 60 * 60)
- */
+
 mongoose.connection.once('open', () => {
     console.log(yellow, 'Connected to MongoDB');
 })
