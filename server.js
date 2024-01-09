@@ -101,6 +101,10 @@ io.on('connection', socket => {
         socketController.handleRoomRejoin(io, socket, roomId)
     })
 
+    socket.on('rejoin', roomId => {
+        socketController.handleRoomRejoin(io, socket, roomId)
+    })
+
     socket.on('activity', (data) => {
         socketController.handleActivity(socket, data);
     })

@@ -89,13 +89,18 @@ const handleMessage = async (io, message, roomId) => {
 
 
 
-    message = newMSg;
-    io.to(roomId).emit('message', { message });
+  
 
     const ids = foundChat.members;
-    let friendId = '';
+    
+    for await (const user of ids.map(async id =>  await User.findById(id))) {
+        const socketId = user.socketId;
 
+        io.to(socketId).emit('rejoin', roomId);
+    }
 
+    message = newMSg;
+    io.to(roomId).emit('message', { message });
 
     foundChat.messages.push({ ...message, time });
     await foundChat.save();
