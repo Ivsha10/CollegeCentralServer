@@ -52,10 +52,7 @@ app.use('/college', require('./routes/college'));
 app.use('/profile', require('./routes/profile'));
 
 
-const estimator = require('./estimator/estimator');
 
-
- estimator.estimateScores();
 
 
 mongoose.connection.once('open', () => {
@@ -133,8 +130,27 @@ io.on('connection', socket => {
 
     //Video Chat listeners and emitters end
 
+    // Connections page listeners and emitters start
 
+
+    socket.on('getUserSocials', async (id) => {
+        await socketController.handleUserSocials(socket, id);
+    }) 
+
+    socket.on('friendRequest', async (data) => {
+        await socketController.handleFriendRequest(io, socket, data);
+    })
+
+    socket.on('acceptFriendRequest', async (data) => {
+        await socketController.handleAcceptRequest(io, socket, data);
+    })
+
+
+
+    // Connections page listeners and emitters end
     socket.on('disconnect', () => {
         console.log(socket.id, 'Disconnected!\n');
     })
+
+
 })
