@@ -117,9 +117,8 @@ const updateCollege = async (req, res) => {
         const obj = req.body;
         const id = req.params.id;
         console.log(obj);
-        const sports = obj.sports;
-        console.log(sports);
         let foundCollege = await College.findById(id).exec();
+        
         if (foundCollege) {
 
             foundCollege.name = obj.name;

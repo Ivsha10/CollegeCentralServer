@@ -3,7 +3,7 @@ const app = express();
 
 const http = require('http');
 const server = http.createServer(app);
-
+    
 const { Server } = require('socket.io');
 
 const cors = require('cors');
@@ -25,7 +25,7 @@ connectDB();
 app.use(credentials);
 
 app.use(cors({ origin: ['https://collegecentral.netlify.app', 'https://collegecentral2.netlify.app'], credentials: true })) 
-//app.use(cors({ origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://10.0.12.13:3000'], credentials: true }))
+//app.use(cors({ origin: ['http://localhost:3000', 'http://127.0.0.1:3000' ], credentials: true }))
 
 //TO handle CORS ----> See Readme for Explanation of CORS
 
@@ -61,7 +61,7 @@ mongoose.connection.once('open', () => {
 
 
 
-server.listen(PORT, () => console.log(green, `CONNECTION ESTABLISHED!`));
+server.listen(PORT, () => console.log(green, `Server running on port`, PORT));
 // Starting the server!
 
 //Websocekts!
@@ -73,6 +73,7 @@ const io = new Server(server, {
 })
 
 const socketController = require('./controllers/socketController');
+
 
 io.on('connection', socket => {
 
@@ -158,3 +159,6 @@ io.on('connection', socket => {
 
 
 })
+
+
+/* require('./estimator/estimator').estimateScores(); */

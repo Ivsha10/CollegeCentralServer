@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const AWS = require('aws-sdk');
-
+require('aws-sdk/lib/maintenance_mode_message').suppress = true;
 AWS.config.update({
     accessKeyId: 'AKIAZOEMY2CS4XZSDE6Y',
     secretAccessKey: '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',

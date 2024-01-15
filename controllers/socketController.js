@@ -89,11 +89,11 @@ const handleMessage = async (io, message, roomId) => {
 
 
 
-  
+
 
     const ids = foundChat.members;
-    
-    for await (const user of ids.map(async id =>  await User.findById(id))) {
+
+    for await (const user of ids.map(async id => await User.findById(id))) {
         const socketId = user.socketId;
 
         io.to(socketId).emit('rejoin', roomId);
@@ -117,20 +117,28 @@ const handleCallUser = async (io, socket, data) => {
     const userId = data.from;
     const friendId = data.userToCall;
     const foundFriend = await User.findById(friendId);
-    if (foundFriend) {
-        const friendSocketId = foundFriend.socketId;
-        console.log(`${userId} calling ${friendSocketId}`);
-        socket.to(friendSocketId).emit("callUser", { from: data.from, name: data.name, signal: data.signalData });
+    try {
+        if (foundFriend) {
+            const friendSocketId = foundFriend.socketId;
+            console.log(`${userId} calling ${friendSocketId}`);
+            socket.to(friendSocketId).emit("callUser", { from: data.from, name: data.name, signal: data.signalData });
+        }
+    } catch (err) {
+        console.log('ERROR');
     }
+
 
 
 }
 
 const handleAnswerCall = async (io, data) => {
 
-    const friendSocketId = data.to;
+    console.log(data);
+    const friendId = data.to;
 
-    io.to(friendSocketId).emit('callAccepted', data.signal);
+    const foundFriend = await User.findById(friendId).exec();
+
+    io.to(foundFriend.socketId).emit('callAccepted', data.signal);
     console.log('Accepted Call');
 
 }
@@ -147,22 +155,19 @@ const handleDeclineCall = async (io, data) => {
 
 
 const handleEndCall = async (io, data) => {
-    console.log(data);
-    const isCaller = data.calling;
+    try {
 
-    if (isCaller) {
         const friendId = data.friendId;
         const foundFriend = await User.findById(friendId);
-        if (foundFriend) {
-            const friendSocketId = foundFriend.socketId;
-            io.to(friendSocketId).emit('callEnded', {});
-            console.log('ended Call');
-        }
-    } else {
-        const friendSocketId = data.friendId;
+
+        const friendSocketId = foundFriend.socketId;
         io.to(friendSocketId).emit('callEnded', {});
         console.log('ended Call');
+
+    } catch (err) {
+        console.log(err);
     }
+
 
 
 
@@ -172,7 +177,7 @@ const handleEndCall = async (io, data) => {
 // Controls for connections page
 const handleUserSocials = async (socket, id) => {
 
-   
+
     const foundUser = await User.findById(id).exec();
 
     let friendsSet = new Set(foundUser.friends);
@@ -184,7 +189,7 @@ const handleUserSocials = async (socket, id) => {
     let receivedReqSet = new Set(foundUser.receivedFriendRequests);
     let receivedReq = [...receivedReqSet];
 
-    let possibleConnections = [...friends, ...sentReq, ...receivedReq];
+    let possibleConnections = [...friends, ...sentReq, ...receivedReq]; ``
 
     let otherUsers = [];
 
@@ -219,7 +224,7 @@ const handleUserSocials = async (socket, id) => {
     await mapArray(friends);
     await mapArray(sentReq);
     await mapArray(receivedReq);
-   
+
     allUsers.forEach(user => {
         if (!possibleConnections.includes(user.id) && user.id !== id) {
 
@@ -249,13 +254,13 @@ const handleFriendRequest = async (io, socket, data) => {
     const sender = await User.findById(data.userId).exec();
     const receiver = await User.findById(data.friendId).exec();
 
-    if(!sender.sentFriendRequests.includes(data.friendId)){
+    if (!sender.sentFriendRequests.includes(data.friendId)) {
         sender.sentFriendRequests.push(data.friendId);
-        await sender.save(); 
+        await sender.save();
     }
 
-    if(!receiver.sentFriendRequests.includes(data.userId)){
-        receiver.receivedFriendRequests.push(data.userId);   
+    if (!receiver.sentFriendRequests.includes(data.userId)) {
+        receiver.receivedFriendRequests.push(data.userId);
         await receiver.save();
     }
 
@@ -271,20 +276,20 @@ const handleFriendRequest = async (io, socket, data) => {
 
     const fullName = sender.fullName ? sender.fullName : sender.username;
 
-    io.to(receiver.socketId).emit('newFriendRequest', {time:time, message: `${fullName} sent you a friend request!`});
+    io.to(receiver.socketId).emit('newFriendRequest', { time: time, message: `${fullName} sent you a friend request!` });
 }
 
 
 const handleAcceptRequest = async (io, socket, data) => {
-    
-    const {userId, friendId} = data;
+
+    const { userId, friendId } = data;
 
     const foundUser = await User.findById(userId).exec();
     const foundFriend = await User.findById(friendId).exec();
 
     const newReceived = foundUser.receivedFriendRequests.filter(id => id !== friendId);
     const newSent = foundFriend.sentFriendRequests.filter(id => id !== userId);
-    
+
     foundUser.receivedFriendRequests = newReceived;
     foundFriend.sentFriendRequests = newSent;
 
@@ -302,7 +307,7 @@ const handleAcceptRequest = async (io, socket, data) => {
         minute: 'numeric'
     }).format(new Date());
 
-    io.to(foundFriend.socketId).emit('requestAccepted',{time:time, message: `${fullName} accepted your friend request!`});
+    io.to(foundFriend.socketId).emit('requestAccepted', { time: time, message: `${fullName} accepted your friend request!` });
 
 }
 module.exports = { setUserId, joinRoom, handleMessage, handleActivity, handleRoomRejoin, handleCallUser, handleAnswerCall, handleDeclineCall, handleEndCall, handleUserSocials, handleFriendRequest, handleAcceptRequest };
