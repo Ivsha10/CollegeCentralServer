@@ -179,7 +179,7 @@ const handleUserSocials = async (socket, id) => {
 
 
     const foundUser = await User.findById(id).exec();
-
+    console.log(foundUser);
     let friendsSet = new Set(foundUser.friends);
     let friends = [...friendsSet];
 
@@ -204,15 +204,23 @@ const handleUserSocials = async (socket, id) => {
 
     let allUsers = await User.find().exec();
 
+
     const mapArray = async (arr) => {
         for await (const friend of arr.map(async friendId => typeof (friendId) === 'string' && await User.findById(friendId).exec())) {
 
-            let id = friend.id;
+            let id = friend.id  ;
             let fullName = friend.fullName ? friend.fullName : friend.username
-            let role = friend.roles[0];
+            let role = friend.role
+            let imageName = friend.profilePicture;
+            let username = friend.username;
+            let playerProfile = friend.playerProfile;
+            let coachProfile = friend.coachProfile;
 
+            let imageUrl = role === 'player' ? `https://collegecentralbucket.s3.amazonaws.com/users/players/${username}/${imageName}` : role === 'coach'  ? `https://collegecentralbucket.s3.amazonaws.com/users/coaches/${username}/${imageName}` : undefined;
+
+            let profile = role === 'player' ? playerProfile : coachProfile
             const friendObj = {
-                id, fullName, role
+                id, fullName, role, imageUrl, profile
             }
 
             arr.push(friendObj);
@@ -226,14 +234,21 @@ const handleUserSocials = async (socket, id) => {
     await mapArray(receivedReq);
 
     allUsers.forEach(user => {
-        if (!possibleConnections.includes(user.id) && user.id !== id) {
+        if (!possibleConnections.includes(user.id) && user.id !== id && user.role !== foundUser.role && user.role !== 'admin' && user.role !=='user') {
 
             let id = user.id;
             let fullName = user.fullName ? user.fullName : user.username
-            let role = user.roles[0];
+            let role = user.role;
+            let imageName = user.profilePicture;
+            let username = user.username;
+            let playerProfile = user.playerProfile;
+            let coachProfile = user.coachProfile;
 
+            let imageUrl = role === 'player' ? `https://collegecentralbucket.s3.amazonaws.com/users/players/${username}/${imageName}` : role === 'coach'  ? `https://collegecentralbucket.s3.amazonaws.com/users/coaches/${username}/${imageName}` : undefined;
+
+            let profile = role === 'player' ? playerProfile : coachProfile
             const friendObj = {
-                id, fullName, role
+                id, fullName, role, imageUrl, profile
             }
 
             otherUsers.push(friendObj);
@@ -310,4 +325,12 @@ const handleAcceptRequest = async (io, socket, data) => {
     io.to(foundFriend.socketId).emit('requestAccepted', { time: time, message: `${fullName} accepted your friend request!` });
 
 }
-module.exports = { setUserId, joinRoom, handleMessage, handleActivity, handleRoomRejoin, handleCallUser, handleAnswerCall, handleDeclineCall, handleEndCall, handleUserSocials, handleFriendRequest, handleAcceptRequest };
+
+
+const getModalInfo = async (socket, id) => {
+    const foundUser = await User.findById(id);
+    foundUser.password = '';
+    socket.emit('info', foundUser);
+    
+}
+module.exports = { setUserId, joinRoom, handleMessage, handleActivity, handleRoomRejoin, handleCallUser, handleAnswerCall, handleDeclineCall, handleEndCall, handleUserSocials, handleFriendRequest, handleAcceptRequest, getModalInfo };

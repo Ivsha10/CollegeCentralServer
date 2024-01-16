@@ -152,6 +152,11 @@ io.on('connection', socket => {
 
 
 
+    socket.on('getModalInfo', async id => {
+        await socketController.getModalInfo(socket, id);
+    })
+
+
     // Connections page listeners and emitters end
     socket.on('disconnect', () => {
         console.log(socket.id, 'Disconnected!\n');
@@ -161,4 +166,4 @@ io.on('connection', socket => {
 })
 
 
-/* require('./estimator/estimator').estimateScores(); */
+require('./estimator/estimator').estimateScores();
