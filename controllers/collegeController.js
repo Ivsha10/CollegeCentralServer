@@ -176,7 +176,7 @@ const addFacilities = async (req, res) => {
     const UPLOAD = (val) => {
         const image = images[val];
         const params = {
-            Bucket: 'collegecentralbucket',
+            Bucket: `collegecentralbucket/colleges/${foundCollege.name}`,
             Key: image.originalname,
             Body: image.buffer,
         }

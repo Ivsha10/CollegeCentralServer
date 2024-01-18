@@ -166,4 +166,4 @@ io.on('connection', socket => {
 })
 
 
-require('./estimator/estimator').estimateScores();
+/* require('./estimator/estimator').estimateScores(); */
