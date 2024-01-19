@@ -101,7 +101,7 @@ const handleMessage = async (io, message, roomId) => {
             id: sender.id
         },
         notification: {
-            title: `${sender.fullName} sent you a message`,
+            title: `${sender.fullName}`,
             body: newMSg.message,
         
         },
