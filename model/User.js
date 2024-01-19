@@ -11,7 +11,7 @@ const userSchema = new Schema({
     age: Number,
     credits: Number,
     profilePicture: String,
-    playerProfile: {},
+    playerProfile: {},  
     coachProfile: {},
     invoices: [],
     refreshToken: String,
