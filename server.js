@@ -27,6 +27,7 @@ app.use(credentials);
 app.use(cors({ origin: ['https://collegecentral.netlify.app', 'https://collegecentral2.netlify.app'], credentials: true })) 
 //app.use(cors({ origin: ['http://localhost:3000', 'http://127.0.0.1:3000' ], credentials: true }))
 
+
 //TO handle CORS ----> See Readme for Explanation of CORS
 
 app.use(express.urlencoded({ extended: false }));
@@ -50,7 +51,7 @@ app.use(verifyJWT);
 app.use('/users', require('./routes/user'));
 app.use('/college', require('./routes/college'));
 app.use('/profile', require('./routes/profile'));
-
+app.use('/checkout', require('./routes/checkout'));
 
 
 
@@ -156,7 +157,9 @@ io.on('connection', socket => {
         await socketController.getModalInfo(socket, id);
     })
 
-
+    socket.on('updateInfo', async data => {
+        await socketController.updateProfile(socket, data);
+    })
     // Connections page listeners and emitters end
     socket.on('disconnect', () => {
         console.log(socket.id, 'Disconnected!\n');

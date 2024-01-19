@@ -331,6 +331,18 @@ const getModalInfo = async (socket, id) => {
     const foundUser = await User.findById(id);
     foundUser.password = '';
     socket.emit('info', foundUser);
-    
 }
-module.exports = { setUserId, joinRoom, handleMessage, handleActivity, handleRoomRejoin, handleCallUser, handleAnswerCall, handleDeclineCall, handleEndCall, handleUserSocials, handleFriendRequest, handleAcceptRequest, getModalInfo };
+
+const updateProfile = async (socket, data) => {
+    let foundUser = await User.findOne({username: data.username}).exec();
+    const role = foundUser.role;
+
+    foundUser.age = data.age;
+    foundUser.fullName = data.fullName;
+    
+    role === 'player' ? foundUser.playerProfile = data.playerProfile : foundUser.coachProfile = data.coachProfile;
+    
+    await foundUser.save();
+    socket.emit('info', foundUser);
+}
+module.exports = { setUserId, joinRoom, handleMessage, handleActivity, handleRoomRejoin, handleCallUser, handleAnswerCall, handleDeclineCall, handleEndCall, handleUserSocials, handleFriendRequest, handleAcceptRequest, getModalInfo, updateProfile };

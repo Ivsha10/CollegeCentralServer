@@ -19,7 +19,8 @@ const userSchema = new Schema({
     balance: Number,
     sentFriendRequests:[],
     receivedFriendRequests:[],
-    socketId: String
+    socketId: String,
+    lastPaymentSession: {sessionId: String, amount:Number}
 })
 
 const User = mongoose.model('User', userSchema);
