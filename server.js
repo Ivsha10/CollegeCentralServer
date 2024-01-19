@@ -3,7 +3,7 @@ const app = express();
 
 const http = require('http');
 const server = http.createServer(app);
-    
+
 const { Server } = require('socket.io');
 
 const cors = require('cors');
@@ -16,6 +16,13 @@ const PORT = 3500;
 const yellow = "\x1b[33m";
 const green = "\x1b[32m";
 
+var firebaseAdmin = require("firebase-admin");
+
+const serviceAccount = require('./config/collegecentralServiceAccount.json');
+
+firebaseAdmin.initializeApp({
+    credential: firebaseAdmin.credential.cert(serviceAccount)
+  });
 
 connectDB();
 // To connect to the database
@@ -25,7 +32,7 @@ connectDB();
 app.use(credentials);
 
 app.use(cors({ origin: ['https://collegecentral.netlify.app', 'https://collegecentral2.netlify.app'], credentials: true })) 
-//app.use(cors({ origin: ['http://localhost:3000', 'http://127.0.0.1:3000' ], credentials: true }))
+//app.use(cors({ origin: ['http://localhost:3000', 'http://127.0.0.1:3000'], credentials: true }))
 
 
 //TO handle CORS ----> See Readme for Explanation of CORS
@@ -42,7 +49,7 @@ app.use('/images', express.static('images'));
 app.use(cookieParser());
 // To handle cookie requests
 
-app.use('/', require('./routes/root')); 
+app.use('/', require('./routes/root'));
 app.use('/auth', require('./routes/auth'));
 app.use('/register', require('./routes/register'));
 app.use('/refresh', require('./routes/refresh'));
@@ -80,12 +87,12 @@ io.on('connection', socket => {
 
     console.log(`${socket.id} connected!\n`)
     socket.emit('connected', socket.id);
-    
+
     socket.on('setUserId', async (userDbId) => {
         await socketController.setUserId(socket.id, userDbId);
     });
 
-    
+
 
     socket.on('joinRoom', async (roomObj) => {
         await socketController.joinRoom(socket, roomObj);
@@ -125,12 +132,12 @@ io.on('connection', socket => {
         socketController.handleAnswerCall(io, data);
     })
 
-    socket.on('declineCall',  async (data) => {
+    socket.on('declineCall', async (data) => {
         await socketController.handleDeclineCall(io, data);
     })
 
-    socket.on('endCall', (data)=> {
-       socketController.handleEndCall(io, data)
+    socket.on('endCall', (data) => {
+        socketController.handleEndCall(io, data)
     })
 
 
@@ -141,7 +148,7 @@ io.on('connection', socket => {
 
     socket.on('getUserSocials', async (id) => {
         await socketController.handleUserSocials(socket, id);
-    }) 
+    })
 
     socket.on('friendRequest', async (data) => {
         await socketController.handleFriendRequest(io, socket, data);
@@ -170,3 +177,4 @@ io.on('connection', socket => {
 
 
 /* require('./estimator/estimator').estimateScores(); */
+

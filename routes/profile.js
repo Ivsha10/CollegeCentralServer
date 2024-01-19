@@ -23,8 +23,8 @@ AWS.config.update({
 
 
 const s3 = new AWS.S3();
-router.get('/', async (req, res)=> {
-    
+router.get('/', async (req, res) => {
+
     const getVideo = () => {
         const url = s3.getSignedUrl('getObject', {
             Bucket: 'collegecentralbucket',
@@ -35,40 +35,47 @@ router.get('/', async (req, res)=> {
         return url;
     }
 
-    const url =  getVideo();
+    const url = getVideo();
 
     return res.json(url);
 
 })
 
 router.post('/:id', upload.single('video'), async (req, res) => {
-    console.log(req.file);
-     const video = req.file;
-    const foundUser = await User.findById(req.params.id).exec();
 
-    const params = {
-        Bucket: `collegecentralbucket/users/players/${foundUser.username}/video`,
-        Key: video.originalname.split(' ').join(''),
-        Body: video.buffer,
+    try {
+        const video = req.file;
+        const foundUser = await User.findById(req.params.id).exec();
+
+        const params = {
+            Bucket: `collegecentralbucket/users/players/${foundUser.username}/video`,
+            Key: video.originalname.split(' ').join(''),
+            Body: video.buffer,
+        }
+
+        s3.upload(params, (err, data) => {
+            if (err) {
+                console.log(err);
+            }
+        })
+
+
+
+        const videoURL = `https://collegecentralbucket.s3.amazonaws.com/users/players/${foundUser.username}/video/${video.originalname.split(' ').join('')}`
+
+        let playerProfile = foundUser.playerProfile;
+        playerProfile = { ...playerProfile, video: videoURL };
+        foundUser.playerProfile = playerProfile;
+
+        await foundUser.save();
+        console.log('Success!');
+        return res.json(foundUser);
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json('Error! Please try again!');
     }
 
-    s3.upload(params, (err, data) => {
-        if(err) {
-            console.log(err);
-        }
-    })
-
-
-    
-    const videoURL = `https://collegecentralbucket.s3.amazonaws.com/users/players/${foundUser.username}/video/${video.originalname}`
-
-    let playerProfile = foundUser.playerProfile;
-    playerProfile = {...playerProfile, video: videoURL};
-    foundUser.playerProfile = playerProfile;
-
-    await foundUser.save();
-
-    return res.json(foundUser);
 
 })
 

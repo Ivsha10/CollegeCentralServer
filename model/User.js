@@ -20,6 +20,7 @@ const userSchema = new Schema({
     sentFriendRequests:[],
     receivedFriendRequests:[],
     socketId: String,
+    deviceTokens: [],
     lastPaymentSession: {sessionId: String, amount:Number}
 })
 

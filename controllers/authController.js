@@ -4,7 +4,11 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const handleSignIn = async (req, res) => {
-    const {username, password} = req.body;
+    const {username, password, deviceToken} = req.body;
+
+    console.log(req.body);
+
+
     const foundUser = await User.findOne({username:username}).exec();
     if(foundUser) {
         const match = bcrypt.compareSync(password, foundUser.password);
@@ -25,9 +29,12 @@ const handleSignIn = async (req, res) => {
 
             foundUser.refreshToken = refreshToken;
             const id = foundUser._id;
-            const sentFriendRequests = foundUser.sentFriendRequests;
-            const receivedFriendRequests = foundUser.receivedFriendRequests;
             const role = foundUser.role;
+            const deviceTokens = new Set(foundUser.deviceTokens);
+            deviceTokens.add(deviceToken);
+
+            foundUser.deviceTokens = [deviceToken];
+
             const result = foundUser.save();
 
             res.cookie('jwt', refreshToken, { httpOnly: true, sameSite: 'None', secure: true, maxAge: 1000 * 60 * 60 * 24 });

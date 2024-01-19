@@ -1,6 +1,10 @@
 const User = require('../model/User');
 const ChatRoom = require('../model/ChatRoom');
 
+
+var firebaseAdmin = require("firebase-admin");
+
+
 const setUserId = async (socketId, dbId) => {
 
     const user = await User.findById(dbId);
@@ -84,6 +88,33 @@ const handleMessage = async (io, message, roomId) => {
         time: time
     }
     let foundChat = await ChatRoom.findById(roomId);
+    const sender = await User.findOne({ username: from }).exec();
+    const recepientId = foundChat.members.filter(id => id !== sender.id);
+
+    const recepient = await User.findById(recepientId).exec();
+
+    const deviceTokens = recepient.deviceTokens;
+
+
+    const payload = {
+        data: {
+            id: sender.id
+        },
+        notification: {
+            title: `${sender.fullName} sent you a message`,
+            body: newMSg.message,
+        
+        },
+        token: deviceTokens[0]
+    }
+
+
+    try {
+       const response =  await firebaseAdmin.messaging().send(payload);
+        console.log('SUCCESS:', response);
+    } catch (error) {
+        console.log('ERROR:', error);
+    }
 
 
 
@@ -101,6 +132,9 @@ const handleMessage = async (io, message, roomId) => {
 
     message = newMSg;
     io.to(roomId).emit('message', { message });
+
+
+
 
     foundChat.messages.push({ ...message, time });
     await foundChat.save();
@@ -208,7 +242,7 @@ const handleUserSocials = async (socket, id) => {
     const mapArray = async (arr) => {
         for await (const friend of arr.map(async friendId => typeof (friendId) === 'string' && await User.findById(friendId).exec())) {
 
-            let id = friend.id  ;
+            let id = friend.id;
             let fullName = friend.fullName ? friend.fullName : friend.username
             let role = friend.role
             let imageName = friend.profilePicture;
@@ -216,7 +250,7 @@ const handleUserSocials = async (socket, id) => {
             let playerProfile = friend.playerProfile;
             let coachProfile = friend.coachProfile;
 
-            let imageUrl = role === 'player' ? `https://collegecentralbucket.s3.amazonaws.com/users/players/${username}/${imageName}` : role === 'coach'  ? `https://collegecentralbucket.s3.amazonaws.com/users/coaches/${username}/${imageName}` : undefined;
+            let imageUrl = role === 'player' ? `https://collegecentralbucket.s3.amazonaws.com/users/players/${username}/${imageName}` : role === 'coach' ? `https://collegecentralbucket.s3.amazonaws.com/users/coaches/${username}/${imageName}` : undefined;
 
             let profile = role === 'player' ? playerProfile : coachProfile
             const friendObj = {
@@ -234,7 +268,7 @@ const handleUserSocials = async (socket, id) => {
     await mapArray(receivedReq);
 
     allUsers.forEach(user => {
-        if (!possibleConnections.includes(user.id) && user.id !== id && user.role !== foundUser.role && user.role !== 'admin' && user.role !=='user') {
+        if (!possibleConnections.includes(user.id) && user.id !== id && user.role !== foundUser.role && user.role !== 'admin' && user.role !== 'user') {
 
             let id = user.id;
             let fullName = user.fullName ? user.fullName : user.username
@@ -244,7 +278,7 @@ const handleUserSocials = async (socket, id) => {
             let playerProfile = user.playerProfile;
             let coachProfile = user.coachProfile;
 
-            let imageUrl = role === 'player' ? `https://collegecentralbucket.s3.amazonaws.com/users/players/${username}/${imageName}` : role === 'coach'  ? `https://collegecentralbucket.s3.amazonaws.com/users/coaches/${username}/${imageName}` : undefined;
+            let imageUrl = role === 'player' ? `https://collegecentralbucket.s3.amazonaws.com/users/players/${username}/${imageName}` : role === 'coach' ? `https://collegecentralbucket.s3.amazonaws.com/users/coaches/${username}/${imageName}` : undefined;
 
             let profile = role === 'player' ? playerProfile : coachProfile
             const friendObj = {
@@ -334,14 +368,14 @@ const getModalInfo = async (socket, id) => {
 }
 
 const updateProfile = async (socket, data) => {
-    let foundUser = await User.findOne({username: data.username}).exec();
+    let foundUser = await User.findOne({ username: data.username }).exec();
     const role = foundUser.role;
 
     foundUser.age = data.age;
     foundUser.fullName = data.fullName;
-    
+
     role === 'player' ? foundUser.playerProfile = data.playerProfile : foundUser.coachProfile = data.coachProfile;
-    
+
     await foundUser.save();
     socket.emit('info', foundUser);
 }
