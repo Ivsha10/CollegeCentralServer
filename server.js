@@ -26,6 +26,12 @@ firebaseAdmin.initializeApp({
 
 connectDB();
 // To connect to the database
+const io = new Server(server, {
+    cors: {
+        origin: '*'
+        
+    }
+})
 
 
 
@@ -43,7 +49,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 //To handle simple JSON data ----> See Readme for explanation of JSON
 app.use('/images', express.static('images'));
-
+    
 // To serve simple static files like css, images, etc
 
 app.use(cookieParser());
@@ -54,7 +60,10 @@ app.use('/auth', require('./routes/auth'));
 app.use('/register', require('./routes/register'));
 app.use('/refresh', require('./routes/refresh'));
 
+
+
 app.use(verifyJWT);
+
 app.use('/users', require('./routes/user'));
 app.use('/college', require('./routes/college'));
 app.use('/profile', require('./routes/profile'));
@@ -67,18 +76,13 @@ mongoose.connection.once('open', () => {
     console.log(yellow, 'Connected to MongoDB');
 })
 
+//Websocekts!
+
 
 
 server.listen(PORT, () => console.log(green, `Server running on port`, PORT));
 // Starting the server!
 
-//Websocekts!
-const io = new Server(server, {
-    cors: {
-        origin: '*'
-        //origin : ['https://collegecentral2.netlify.app', ]
-    }
-})
 
 const socketController = require('./controllers/socketController');
 
@@ -168,10 +172,17 @@ io.on('connection', socket => {
         await socketController.updateProfile(socket, data);
     })
     // Connections page listeners and emitters end
+
+    //handling video update
+
+    socket.on('tryToCheckout', ()=> {
+        socket.emit('checkoutAllowed');
+    })
+
+
     socket.on('disconnect', () => {
         console.log(socket.id, 'Disconnected!\n');
     })
-
 
 })
 

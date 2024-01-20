@@ -6,7 +6,6 @@ require('dotenv').config();
 const handleSignIn = async (req, res) => {
     const {username, password, deviceToken} = req.body;
 
-    console.log(req.body);
 
 
     const foundUser = await User.findOne({username:username}).exec();
