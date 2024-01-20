@@ -26,12 +26,6 @@ firebaseAdmin.initializeApp({
 
 connectDB();
 // To connect to the database
-const io = new Server(server, {
-    cors: {
-        origin: '*'
-        
-    }
-})
 
 
 
@@ -84,6 +78,13 @@ server.listen(PORT, () => console.log(green, `Server running on port`, PORT));
 
 
 const socketController = require('./controllers/socketController');
+
+const io = new Server(server, {
+    cors: {
+        origin: '*'
+        
+    }
+})
 
 
 io.on('connection', socket => {
