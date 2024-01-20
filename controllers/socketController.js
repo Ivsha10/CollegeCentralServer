@@ -98,6 +98,7 @@ const handleMessage = async (io, message, roomId) => {
 
     const payload = {
         data: {
+            type: 'message',
             id: sender.id
         },
         notification: {
@@ -327,6 +328,7 @@ const handleFriendRequest = async (io, socket, data) => {
 
     const payload = {
         data: {
+            type:'request',
             id: sender.id
         },
         notification: {
@@ -378,6 +380,31 @@ const handleAcceptRequest = async (io, socket, data) => {
     }).format(new Date());
 
     io.to(foundFriend.socketId).emit('requestAccepted', { time: time, message: `${fullName} accepted your friend request!` });
+
+
+    const deviceTokens = foundFriend.deviceTokens;
+
+
+    const payload = {
+        data: {
+            type:'request',
+            id: foundUser.id
+        },
+        notification: {
+            title: 'Friend Request',
+            body:  `${foundUser.fullName} accepted your friend request!`,
+        
+        },
+        token: deviceTokens[0]
+    }
+
+
+    try {
+       const response =  await firebaseAdmin.messaging().send(payload);
+        console.log('SUCCESS:', response);
+    } catch (error) {
+        console.log('ERROR:', error);
+    }
 
 }
 

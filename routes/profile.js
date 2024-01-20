@@ -45,6 +45,7 @@ router.post('/:id', upload.single('video'), async (req, res) => {
 
     try {
         const video = req.file;
+        
         const foundUser = await User.findById(req.params.id).exec();
 
         const params = {
@@ -79,5 +80,40 @@ router.post('/:id', upload.single('video'), async (req, res) => {
 
 })
 
+router.post('/picture/:id', upload.single('image'), async (req, res) => { 
+
+    try {
+        const image = req.file;
+        console.log(image);
+        const foundUser = await User.findById(req.params.id).exec();
+
+        const urlParam = foundUser.role === 'player' ? 'players': 'coaches'
+        const params = {
+            Bucket: `collegecentralbucket/users/${urlParam}/${foundUser.username}`,
+            Key: image.originalname.split(' ').join(''),
+            Body: image.buffer,
+        }
+
+        s3.upload(params, (err, data) => {
+            if (err) {
+                console.log(err);
+            }
+        })
+
+
+
+      
+        foundUser.profilePicture = image.originalname.split(' ').join('');
+        await foundUser.save();
+        console.log('Success!');
+        return res.json(foundUser);
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json('Error! Please try again!');
+    }
+
+
+})
 
 module.exports = router;
