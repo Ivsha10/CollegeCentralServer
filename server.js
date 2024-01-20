@@ -37,7 +37,7 @@ const io = new Server(server, {
 
 app.use(credentials);
 
-app.use(cors({ origin: ['https://collegecentral2.netlify.app' , 'https://www.thecollegecentral.com',],  credentials: true  })) 
+app.use(cors({ origin: ['https://collegecentral2.netlify.app' , 'https://www.thecollegecentral.com','https://www.thecollegecentral.com'],  credentials: true  })) 
 
 
 //TO handle CORS ----> See Readme for Explanation of CORS
