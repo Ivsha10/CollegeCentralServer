@@ -37,7 +37,7 @@ const io = new Server(server, {
 
 app.use(credentials);
 
-app.use(cors({ origin: ['https://collegecentral2.netlify.app' , 'https://www.thecollegecentral.com','https://www.thecollegecentral.com'],  credentials: true  })) 
+app.use(cors(corsOptions)) 
 
 
 //TO handle CORS ----> See Readme for Explanation of CORS
@@ -84,6 +84,7 @@ server.listen(PORT, () => console.log(green, `Server running on port`, PORT));
 
 
 const socketController = require('./controllers/socketController');
+const corsOptions = require('./config/corsOptions');
 
 
 io.on('connection', socket => {

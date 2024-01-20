@@ -1,6 +1,6 @@
 const allowedOrigins = 
 [
-    'https://glittery-bublanina-7fb097.netlify.app',
+    ['https://collegecentral2.netlify.app' , 'https://www.thecollegecentral.com','https://www.thecollegecentral.com']
 ]
 
 module.exports = allowedOrigins;
