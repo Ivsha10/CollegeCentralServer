@@ -15,7 +15,7 @@ const verifyJWT = require('./middleware/verifyJWT');
 const PORT = 3500;
 const yellow = "\x1b[33m";
 const green = "\x1b[32m";
-
+const corsOptions = require('./config/corsOptions')
 var firebaseAdmin = require("firebase-admin");
 
 const serviceAccount = require('./config/collegecentralServiceAccount.json');
