@@ -213,7 +213,6 @@ const handleUserSocials = async (socket, id) => {
 
 
     const foundUser = await User.findById(id).exec();
-    console.log(foundUser);
     let friendsSet = new Set(foundUser.friends);
     let friends = [...friendsSet];
 
@@ -299,7 +298,7 @@ const handleUserSocials = async (socket, id) => {
 }
 
 const handleFriendRequest = async (io, socket, data) => {
-    console.log(data);
+
     const sender = await User.findById(data.userId).exec();
     const receiver = await User.findById(data.friendId).exec();
 
@@ -313,8 +312,6 @@ const handleFriendRequest = async (io, socket, data) => {
         await receiver.save();
     }
 
-    console.log('sender sent to:', sender.sentFriendRequests);
-    console.log('receiver received from:', receiver.receivedFriendRequests);
 
     handleUserSocials(socket, data.userId);
 
@@ -324,6 +321,30 @@ const handleFriendRequest = async (io, socket, data) => {
     }).format(new Date());
 
     const fullName = sender.fullName ? sender.fullName : sender.username;
+
+    const deviceTokens = receiver.deviceTokens;
+
+
+    const payload = {
+        data: {
+            id: sender.id
+        },
+        notification: {
+            title: 'Friend Request',
+            body:  `${sender.fullName} sent you a friend request!`,
+        
+        },
+        token: deviceTokens[0]
+    }
+
+
+    try {
+       const response =  await firebaseAdmin.messaging().send(payload);
+        console.log('SUCCESS:', response);
+    } catch (error) {
+        console.log('ERROR:', error);
+    }
+
 
     io.to(receiver.socketId).emit('newFriendRequest', { time: time, message: `${fullName} sent you a friend request!` });
 }
