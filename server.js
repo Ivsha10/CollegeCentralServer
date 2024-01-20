@@ -84,7 +84,6 @@ server.listen(PORT, () => console.log(green, `Server running on port`, PORT));
 
 
 const socketController = require('./controllers/socketController');
-const corsOptions = require('./config/corsOptions');
 
 
 io.on('connection', socket => {
