@@ -106,7 +106,7 @@ io.on('connection', socket => {
 
     socket.on('message', async ({ message, id }) => {
 
-        await socketController.handleMessage(io, message, id);
+        await socketController.handleMessage(io, message, id, firebaseAdmin);
 
     })
 
@@ -155,11 +155,11 @@ io.on('connection', socket => {
     })
 
     socket.on('friendRequest', async (data) => {
-        await socketController.handleFriendRequest(io, socket, data);
+        await socketController.handleFriendRequest(io, socket, data, firebaseAdmin);
     })
 
     socket.on('acceptFriendRequest', async (data) => {
-        await socketController.handleAcceptRequest(io, socket, data);
+        await socketController.handleAcceptRequest(io, socket, data, firebaseAdmin);
     })
 
 

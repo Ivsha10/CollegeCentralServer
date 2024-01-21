@@ -2,7 +2,8 @@ const User = require('../model/User');
 const ChatRoom = require('../model/ChatRoom');
 
 
-var firebaseAdmin = require("firebase-admin");
+
+
 
 
 const setUserId = async (socketId, dbId) => {
@@ -72,7 +73,7 @@ const handleActivity = (socket, data) => {
 
     socket.to(roomId).emit('activity', activity);
 }
-const handleMessage = async (io, message, roomId) => {
+const handleMessage = async (io, message, roomId, firebaseAdmin) => {
     console.log(message);
 
 
@@ -298,7 +299,7 @@ const handleUserSocials = async (socket, id) => {
 
 }
 
-const handleFriendRequest = async (io, socket, data) => {
+const handleFriendRequest = async (io, socket, data, firebaseAdmin) => {
 
     const sender = await User.findById(data.userId).exec();
     const receiver = await User.findById(data.friendId).exec();
@@ -352,7 +353,7 @@ const handleFriendRequest = async (io, socket, data) => {
 }
 
 
-const handleAcceptRequest = async (io, socket, data) => {
+const handleAcceptRequest = async (io, socket, data, firebaseAdmin) => {
 
     const { userId, friendId } = data;
 
