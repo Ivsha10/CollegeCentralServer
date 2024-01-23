@@ -33,7 +33,7 @@ connectDB();
 
 app.use(credentials);
 
-app.use(cors({ origin: ['http://localhost:3000'] }))
+app.use(cors(corsOptions))
 
 
 //TO handle CORS ----> See Readme for Explanation of CORS
