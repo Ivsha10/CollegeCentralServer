@@ -31,7 +31,7 @@ connectDB();
 
 app.use(credentials);
 
-app.use(cors({origin:['http://localhost:3000']})) 
+app.use(cors(corsOptions)); 
 
 
 //TO handle CORS ----> See Readme for Explanation of CORS
@@ -84,6 +84,7 @@ server.listen(PORT, () => console.log(green, `Server running on port`, PORT));
 
 
 const socketController = require('./controllers/socketController');
+const allowedOrigins = require('./config/allowedOrigins');
 
 
 
