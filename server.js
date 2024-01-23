@@ -86,6 +86,7 @@ server.listen(PORT, () => console.log(green, `Server running on port`, PORT));
 
 
 const socketController = require('./controllers/socketController');
+const College = require('./model/College');
 
 
 
@@ -203,6 +204,21 @@ io.on('connection', socket => {
 })
 
 
-
 /* require('./estimator/estimator').estimateScores(); */
 
+const getColleges = async () => {
+ 
+    const colleges = await College.find().exec();
+
+    let logos = [];
+
+    colleges.forEach(col => {
+
+        if(!col.logo) {
+            console.log(col.name);
+        }
+
+    }) 
+
+    
+}

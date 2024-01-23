@@ -54,10 +54,22 @@ router.get('/:id', async (req, res) => {
 
         const bucketUrl = 'https://collegecentralbucket.s3.amazonaws.com/users';
 
-        const fullName = user.fullName;
+        let fullName = user.fullName;
         const friendId = user.id;
-        const picture = `${bucketUrl}/${user.role}s/${user.username}/${user.profilePicture}`;
+        
+
+        let picture;
         let info2;
+
+        if(user.role === 'admin') {
+            picture = 'https://collegecentralbucket.s3.amazonaws.com/Logo+2+-+256x256.png';
+            fullName = user.username;
+            info2 = '';
+        } 
+        else {
+            picture = `${bucketUrl}/${user.role === 'player' ? 'players' : 'coaches' }/${user.username}/${user.profilePicture}`;
+        } 
+        console.log(picture);
 
     
         if(foundUser.role === 'player') {
@@ -65,7 +77,7 @@ router.get('/:id', async (req, res) => {
         } else {
             info2 = user.playerProfile.position;
         }
-        starredUsers.push({info1: fullName, info2: info2, friendId: friendId, picture: picture});
+        starredUsers.push({ info1: fullName, info2: info2, friendId: friendId, picture: picture});
         
         index++;
     }

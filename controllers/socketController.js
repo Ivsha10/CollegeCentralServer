@@ -76,8 +76,11 @@ const getUserProfile = async (socket, friendId, myId) => {
     const foundFriend = await User.findById(friendId).exec();
     foundFriend.password = '';
     const role = foundFriend.role;
-    const pictureUrl = `${bucketUrl}/${role === 'player' ? 'players' : 'coaches'}/${foundFriend.username}/${foundFriend.profilePicture}`;
+    let pictureUrl = `${bucketUrl}/${role === 'player' ? 'players' : 'coaches'}/${foundFriend.username}/${foundFriend.profilePicture}`;
 
+    if(foundFriend.role === 'admin') {
+        pictureUrl = 'https://collegecentralbucket.s3.amazonaws.com/Logo+2+-+256x256.png';
+    }
     const myProfile = await User.findById(myId);
 
     const starredChats = myProfile.starredChats;
