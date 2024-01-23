@@ -372,6 +372,15 @@ const handleFriendRequest = async (io, socket, data, firebaseAdmin) => {
         await receiver.save();
     }
 
+    if (sender.role === 'player') {
+        sender.credits = sender.credits - 1;
+        await sender.save();
+    }
+
+    if (receiver.role === 'player') {
+        receiver.credits = receiver.credits - 1;
+        await receiver.save();
+    }
 
     handleUserSocials(socket, data.userId);
 
