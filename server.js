@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 const express = require('express');
 const app = express();
 
@@ -22,7 +24,7 @@ const serviceAccount = require('./config/collegecentralServiceAccount.json');
 
 firebaseAdmin.initializeApp({
     credential: firebaseAdmin.credential.cert(serviceAccount)
-  });
+});
 
 connectDB();
 // To connect to the database
@@ -31,7 +33,7 @@ connectDB();
 
 app.use(credentials);
 
-app.use(cors(corsOptions)); 
+app.use(cors({ origin: ['http://localhost:3000'] }))
 
 
 //TO handle CORS ----> See Readme for Explanation of CORS
@@ -42,7 +44,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 //To handle simple JSON data ----> See Readme for explanation of JSON
 app.use('/images', express.static('images'));
-    
+
 // To serve simple static files like css, images, etc
 
 app.use(cookieParser());
@@ -74,7 +76,7 @@ mongoose.connection.once('open', () => {
 const io = new Server(server, {
     cors: {
         origin: '*'
-        
+
     }
 })
 
@@ -84,7 +86,6 @@ server.listen(PORT, () => console.log(green, `Server running on port`, PORT));
 
 
 const socketController = require('./controllers/socketController');
-const allowedOrigins = require('./config/allowedOrigins');
 
 
 
@@ -130,7 +131,7 @@ io.on('connection', socket => {
     });
 
 
-    socket.on('getFriendProfile', async ({friendId, myId}) => {
+    socket.on('getFriendProfile', async ({ friendId, myId }) => {
         await socketController.getUserProfile(socket, friendId, myId);
     })
 
@@ -171,7 +172,7 @@ io.on('connection', socket => {
 
 
 
-    socket.on('getModalInfo', async ({id, myId}) => {
+    socket.on('getModalInfo', async ({ id, myId }) => {
         await socketController.getModalInfo(socket, id, myId);
     })
 
@@ -182,7 +183,7 @@ io.on('connection', socket => {
 
     //handling video update
 
-    socket.on('tryToCheckout', ()=> {
+    socket.on('tryToCheckout', () => {
         socket.emit('checkoutAllowed');
     })
 
@@ -191,15 +192,16 @@ io.on('connection', socket => {
         console.log(socket.id, 'Disconnected!\n');
     })
 
-    socket.on('starChat', async ({id, chatId}) => {
+    socket.on('starChat', async ({ id, chatId }) => {
         await socketController.starChat(socket, id, chatId);
     })
 
-    socket.on('unstarChat', async ({id, chatId}) => {
+    socket.on('unstarChat', async ({ id, chatId }) => {
         await socketController.unstarChat(socket, id, chatId);
     })
 
 })
+
 
 
 /* require('./estimator/estimator').estimateScores(); */

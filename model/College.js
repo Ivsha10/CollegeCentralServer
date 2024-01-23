@@ -8,6 +8,7 @@ const collegeSchema = new Schema({
     city: {type: String, required: true},
     state: {type: String, required: true},
     zip: {type: String, require: true},
+    images: [],
     tuitionFee: {type: Number, required: true},
     acceptanceRate: {type: Number, required: true},
     studentPopulation: {type: Number, required: true},
@@ -29,6 +30,7 @@ const collegeSchema = new Schema({
     rainyDays: {type: Number, required: true},
     severeWeather: {type: Number, required: true},
     facilities: [],
+    logo: String,
     tuitionScore: Number,
     academicScore: Number,
 })

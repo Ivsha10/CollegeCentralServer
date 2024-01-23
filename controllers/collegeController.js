@@ -118,7 +118,7 @@ const updateCollege = async (req, res) => {
         const id = req.params.id;
         console.log(obj);
         let foundCollege = await College.findById(id).exec();
-        
+
         if (foundCollege) {
 
             foundCollege.name = obj.name;
@@ -231,14 +231,14 @@ const addFacilities = async (req, res) => {
             }
         }
     } catch (error) {
-        return res.sendStatus(500);    
+        return res.sendStatus(500);
     }
 
 
     await foundCollege.save();
     UPLOAD(0);
 
-    return res.status(200).json({'message': `Facilities added successfully!`, 'facilities':foundCollege.facilities});
+    return res.status(200).json({ 'message': `Facilities added successfully!`, 'facilities': foundCollege.facilities });
 
 
     const getImageDemo = () => {
@@ -257,4 +257,45 @@ const addFacilities = async (req, res) => {
 
 
 }
-module.exports = { handleNewCollege, handleGetCollegeLogs, getLastCollege, getAllColleges, getCollege, updateCollege, addFacilities }
+
+//THIS IS A DEMO API ---> DONT USE IN PRODUCTION 
+
+const addCollegeLogo = async (req, res) => {
+
+
+    const { id } = req.body;
+
+    const foundCollege = await College.findById(id);
+
+    const image = req.file;
+
+
+    const bucketUrl = `collegecentralbucket/colleges/${foundCollege.name}/logo`;
+
+
+    const params = {
+        Bucket: `collegecentralbucket/colleges/${foundCollege.name}/logo`,
+        Key: image.originalname,
+        Body: image.buffer,
+    }
+    
+    const s3 = new AWS.S3();
+
+    s3.upload(params, (err, data) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Error uploading file');
+        }
+    });
+
+
+    foundCollege.logo = `${bucketUrl}/${image.originalname}`;
+
+    await foundCollege.save();
+
+    return res.sendStatus(200);
+
+
+
+}
+module.exports = { handleNewCollege, handleGetCollegeLogs, getLastCollege, getAllColleges, getCollege, updateCollege, addFacilities, addCollegeLogo }

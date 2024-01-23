@@ -76,7 +76,7 @@ const getUserProfile = async (socket, friendId, myId) => {
     const foundFriend = await User.findById(friendId).exec();
     foundFriend.password = '';
     const role = foundFriend.role;
-    const pictureUrl = `${bucketUrl}/${role}s/${foundFriend.username}/${foundFriend.profilePicture}`;
+    const pictureUrl = `${bucketUrl}/${role === 'player' ? 'players' : 'coaches'}/${foundFriend.username}/${foundFriend.profilePicture}`;
 
     const myProfile = await User.findById(myId);
 
