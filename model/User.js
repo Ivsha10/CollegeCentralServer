@@ -21,6 +21,12 @@ const userSchema = new Schema({
     receivedFriendRequests:[],
     socketId: String,
     deviceTokens: [],
+    starredChats:[],
+    verificationCode: {},
+    isOtp: Boolean,
+    stats: {
+        profileViews: Number,
+    },
     lastPaymentSession: {sessionId: String, amount:Number}
 })
 

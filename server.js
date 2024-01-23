@@ -31,7 +31,7 @@ connectDB();
 
 app.use(credentials);
 
-app.use(cors(corsOptions)) 
+app.use(cors({origin:['http://localhost:3000']})) 
 
 
 //TO handle CORS ----> See Readme for Explanation of CORS
@@ -52,6 +52,7 @@ app.use('/', require('./routes/root'));
 app.use('/auth', require('./routes/auth'));
 app.use('/register', require('./routes/register'));
 app.use('/refresh', require('./routes/refresh'));
+app.use('/verify', require('./routes/verify'));
 
 
 
@@ -70,7 +71,12 @@ mongoose.connection.once('open', () => {
 })
 
 //Websocekts!
-
+const io = new Server(server, {
+    cors: {
+        origin: '*'
+        
+    }
+})
 
 
 server.listen(PORT, () => console.log(green, `Server running on port`, PORT));
@@ -79,12 +85,7 @@ server.listen(PORT, () => console.log(green, `Server running on port`, PORT));
 
 const socketController = require('./controllers/socketController');
 
-const io = new Server(server, {
-    cors: {
-        origin: '*'
-        
-    }
-})
+
 
 
 io.on('connection', socket => {
@@ -127,6 +128,11 @@ io.on('connection', socket => {
         socket.emit('roomLeft', id);
     });
 
+
+    socket.on('getFriendProfile', async ({friendId, myId}) => {
+        await socketController.getUserProfile(socket, friendId, myId);
+    })
+
     //Video Chat listeners and emitters start
 
     socket.on('callUser', async (data) => {
@@ -164,11 +170,11 @@ io.on('connection', socket => {
 
 
 
-    socket.on('getModalInfo', async id => {
-        await socketController.getModalInfo(socket, id);
+    socket.on('getModalInfo', async ({id, myId}) => {
+        await socketController.getModalInfo(socket, id, myId);
     })
 
-    socket.on('updateInfo', async data => {
+    socket.on('updateInfo', async (data) => {
         await socketController.updateProfile(socket, data);
     })
     // Connections page listeners and emitters end
@@ -182,6 +188,14 @@ io.on('connection', socket => {
 
     socket.on('disconnect', () => {
         console.log(socket.id, 'Disconnected!\n');
+    })
+
+    socket.on('starChat', async ({id, chatId}) => {
+        await socketController.starChat(socket, id, chatId);
+    })
+
+    socket.on('unstarChat', async ({id, chatId}) => {
+        await socketController.unstarChat(socket, id, chatId);
     })
 
 })

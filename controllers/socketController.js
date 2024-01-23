@@ -58,6 +58,8 @@ const joinRoom = async (socket, roomObj) => {
     socket.emit('chatRoom', { chatId: chatId, messages: messages, friendId: friendDbId, friendName: friendName });
 
 }
+
+
 const handleRoomRejoin = (io, socket, roomId) => {
 
     const isSocketInRoom = io.sockets.adapter.rooms[roomId]?.sockets[socket.id];
@@ -67,12 +69,68 @@ const handleRoomRejoin = (io, socket, roomId) => {
     }
 
 }
+
+const getUserProfile = async (socket, friendId, myId) => {
+
+    const bucketUrl = 'https://collegecentralbucket.s3.amazonaws.com/users';
+    const foundFriend = await User.findById(friendId).exec();
+    foundFriend.password = '';
+    const role = foundFriend.role;
+    const pictureUrl = `${bucketUrl}/${role}s/${foundFriend.username}/${foundFriend.profilePicture}`;
+
+    const myProfile = await User.findById(myId);
+
+    const starredChats = myProfile.starredChats;
+
+
+    socket.emit('friendProfile', { friend: foundFriend, picture: pictureUrl, starredChats: starredChats });
+
+}
+
+const starChat = async (socket, id, chatId) => {
+
+    console.log('staringChat');
+
+    const foundUser = await User.findById(id);
+
+    let starredChats = [];
+    if (foundUser?.starredChats) {
+        starredChats = foundUser.starredChats;
+    }
+
+    starredChats.push(chatId);
+
+    foundUser.starredChats = starredChats;
+
+    await foundUser.save();
+
+    socket.emit('chatStarred', { starredChats: foundUser.starredChats });
+
+}
+
+const unstarChat = async (socket, id, chatId) => {
+    console.log('unstarringChat');
+
+    const foundUser = await User.findById(id);
+
+    let starredChats = foundUser.starredChats;
+    starredChats = starredChats.filter(id => id !== chatId);
+    foundUser.starredChats = starredChats;
+
+    await foundUser.save();
+
+    socket.emit('chatUnstarred', { starredChats: foundUser.starredChats });
+}
+
 const handleActivity = (socket, data) => {
     const activity = data.activity;
     const roomId = data.roomId;
 
     socket.to(roomId).emit('activity', activity);
 }
+
+
+
 const handleMessage = async (io, message, roomId, firebaseAdmin) => {
     console.log(message);
 
@@ -105,14 +163,14 @@ const handleMessage = async (io, message, roomId, firebaseAdmin) => {
         notification: {
             title: `${sender.fullName}`,
             body: newMSg.message,
-        
+
         },
         token: deviceTokens[0]
     }
 
 
     try {
-       const response =  await firebaseAdmin.messaging().send(payload);
+        const response = await firebaseAdmin.messaging().send(payload);
         console.log('SUCCESS:', response);
     } catch (error) {
         console.log('ERROR:', error);
@@ -329,20 +387,20 @@ const handleFriendRequest = async (io, socket, data, firebaseAdmin) => {
 
     const payload = {
         data: {
-            type:'request',
+            type: 'request',
             id: sender.id
         },
         notification: {
             title: 'Friend Request',
-            body:  `${sender.fullName} sent you a friend request!`,
-        
+            body: `${sender.fullName} sent you a friend request!`,
+
         },
         token: deviceTokens[0]
     }
 
 
     try {
-       const response =  await firebaseAdmin.messaging().send(payload);
+        const response = await firebaseAdmin.messaging().send(payload);
         console.log('SUCCESS:', response);
     } catch (error) {
         console.log('ERROR:', error);
@@ -388,20 +446,20 @@ const handleAcceptRequest = async (io, socket, data, firebaseAdmin) => {
 
     const payload = {
         data: {
-            type:'request',
+            type: 'request',
             id: foundUser.id
         },
         notification: {
             title: 'Friend Request',
-            body:  `${foundUser.fullName} accepted your friend request!`,
-        
+            body: `${foundUser.fullName} accepted your friend request!`,
+
         },
         token: deviceTokens[0]
     }
 
 
     try {
-       const response =  await firebaseAdmin.messaging().send(payload);
+        const response = await firebaseAdmin.messaging().send(payload);
         console.log('SUCCESS:', response);
     } catch (error) {
         console.log('ERROR:', error);
@@ -410,9 +468,20 @@ const handleAcceptRequest = async (io, socket, data, firebaseAdmin) => {
 }
 
 
-const getModalInfo = async (socket, id) => {
+const getModalInfo = async (socket, id, myId) => {
     const foundUser = await User.findById(id);
+
+    if (id !== myId) {
+        if (foundUser.stats.profileViews > 0) {
+            foundUser.stats.profileViews += 1;
+        } else {
+            foundUser.stats.profileViews = 1;
+        }
+        await foundUser.save();
+    }
+
     foundUser.password = '';
+
     socket.emit('info', foundUser);
 }
 
@@ -428,4 +497,5 @@ const updateProfile = async (socket, data) => {
     await foundUser.save();
     socket.emit('info', foundUser);
 }
-module.exports = { setUserId, joinRoom, handleMessage, handleActivity, handleRoomRejoin, handleCallUser, handleAnswerCall, handleDeclineCall, handleEndCall, handleUserSocials, handleFriendRequest, handleAcceptRequest, getModalInfo, updateProfile };
+
+module.exports = { setUserId, joinRoom, getUserProfile, handleMessage, handleActivity, handleRoomRejoin, handleCallUser, handleAnswerCall, handleDeclineCall, handleEndCall, handleUserSocials, handleFriendRequest, handleAcceptRequest, getModalInfo, updateProfile, starChat, unstarChat };

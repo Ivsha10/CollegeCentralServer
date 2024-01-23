@@ -2,28 +2,31 @@ const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
 
-const sendMail = (templateName) => {
+const sendVerificationCode = (receiver, fullName, code, res) => {
 
 
 
     const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp-mail.outlook.com',
+        port: 587,
+        secure:false,
         auth: {
-            user: 'collegecentralinfo@gmail.com',
+            user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PWD
         }
     });
 
-    let html = (fs.readFileSync(path.join(__dirname, "..", "public", "templates", `${templateName}.html`), { encoding: 'utf-8', flag: 'r' }));
+    let html = (fs.readFileSync(path.join(__dirname, "..", "public", "templates", `verify.html`), { encoding: 'utf-8', flag: 'r' }));
 
 
 
-    html = html.replace('{{text}}', 'HELLO WORLD');
+    html = html.replace('{{fullName}}', fullName);
+    html = html.replace('{{code}}', code);
 
     let emailOptions = {
-        from: 'collegecentralinfo@gmail.com',
-        to: 'djuricicivan7@gmail.com',
-        subject: ' Welcome to CollegeCentral!',
+        from:  process.env.EMAIL_USER,
+        to: receiver,
+        subject: 'Your verification code',
         html: html,
     }
 
@@ -32,9 +35,10 @@ const sendMail = (templateName) => {
             console.log(err);
         } else {
             console.log('Email sent:', info.response);
+            res.status(200).json('Code sent');
         }
     }) 
  
 }
 
-module.exports = { sendMail };
+module.exports = { sendVerificationCode };

@@ -5,6 +5,7 @@ require('aws-sdk/lib/maintenance_mode_message').suppress = true;
 
 const multer = require('multer');
 const User = require('../model/User');
+const ChatRoom = require('../model/ChatRoom');
 
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -23,22 +24,60 @@ AWS.config.update({
 
 
 const s3 = new AWS.S3();
-router.get('/', async (req, res) => {
+router.get('/:id', async (req, res) => {
 
-    const getVideo = () => {
-        const url = s3.getSignedUrl('getObject', {
-            Bucket: 'collegecentralbucket',
-            Key: 'Demo.mp4',
-            Expires: 3600000000
-        })
+    const id = req.params.id;
+    const foundUser = await User.findById(id).exec();
 
-        return url;
+    const friends = foundUser.friends;
+
+    const oppositeRole = foundUser.role === 'player' ? 'coach' : 'player';
+
+
+    const possibleFriends = await User.find({role: oppositeRole }).exec();
+
+    let starredUsersIds = [];
+    let starredUsers = [];
+
+
+
+    for await (const chat of foundUser?.starredChats.map(async chatId => await ChatRoom.findById(chatId))) {
+
+        let members = chat.members;
+
+        const friendId  = members.find((fId) => fId !== id);
+        starredUsersIds.push(friendId);
     }
 
-    const url = getVideo();
+    let index = 0
+    for await (const user of starredUsersIds.map(async (id, index) => await User.findById(id))) {
 
-    return res.json(url);
+        const bucketUrl = 'https://collegecentralbucket.s3.amazonaws.com/users';
 
+        const fullName = user.fullName;
+        const friendId = user.id;
+        const picture = `${bucketUrl}/${user.role}s/${user.username}/${user.profilePicture}`;
+        let info2;
+
+    
+        if(foundUser.role === 'player') {
+            info2 = user.coachProfile.school;
+        } else {
+            info2 = user.playerProfile.position;
+        }
+        starredUsers.push({info1: fullName, info2: info2, friendId: friendId, picture: picture});
+        
+        index++;
+    }
+
+
+
+    console.log(starredUsers);
+    
+    
+
+    res.json({friends: friends.length, possibleFriends: possibleFriends.length,  profileViews:foundUser.stats.profileViews, credits: foundUser.credits, starredUsers:starredUsers});
+    
 })
 
 router.post('/:id', upload.single('video'), async (req, res) => {

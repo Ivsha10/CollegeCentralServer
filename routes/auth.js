@@ -4,6 +4,7 @@ const authController = require('../controllers/authController');
 
 router.post('/', authController.handleSignIn);
 
+router.post('/changePwd', authController.handleChangePwd )
 
 
 
