@@ -72,9 +72,9 @@ router.get('/:id', async (req, res) => {
         console.log(picture);
 
     
-        if(foundUser.role === 'player') {
+        if(user.role === 'coach') {
             info2 = user.coachProfile.school;
-        } else {
+        } else  {
             info2 = user.playerProfile.position;
         }
         starredUsers.push({ info1: fullName, info2: info2, friendId: friendId, picture: picture});

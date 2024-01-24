@@ -1,6 +1,7 @@
 const College = require('../model/College');
 const CollegeLog = require('../model/CollegeLog');
 const AWS = require('aws-sdk');
+const User = require('../model/User');
 
 AWS.config.update({
     accessKeyId: 'AKIAZOEMY2CS4XZSDE6Y',
@@ -90,11 +91,36 @@ const getLastCollege = async (req, res) => {
 }
 
 const getAllColleges = async (req, res) => {
+
+    const bucketUrl = 'https://collegecentralbucket.s3.amazonaws.com/colleges'
+
     try {
         let colleges = await College.find().exec();
+        colleges.forEach(clg => {
+            
+            let logoName = clg.logo;
+            if(!clg.logo) clg.logo = 'https://collegecentralbucket.s3.amazonaws.com/colleges/logo/NOLOGO';
+            const stringArr = clg.logo.split('/');
+            logoName = stringArr[4];
+            console.log(logoName);
+            /* logoName = stringArr.indexOf(stringArr.length - 1);
+            if(logoName === undefined) {logoName = 'logo';}
+            logoName = logoName.replace(' ', '+'); */
+            clg.logo = `${bucketUrl}/${clg.name}/logo/${logoName}`;
+            clg.images.forEach(img => {
+                let imgName = img;
+                if(!imgName) imgName = '';
+                let newImg = `${bucketUrl}/${clg.name}/${imgName}`;
+
+                clg.images.push(newImg)
+
+            })
+
+           clg.images =  clg.images.filter(img => img.includes(bucketUrl));
+        })
         return res.json(colleges);
     } catch (err) {
-        console.log('ERROE');
+        console.log(err);
     }
 
 }
@@ -278,7 +304,7 @@ const addCollegeLogo = async (req, res) => {
         Key: image.originalname,
         Body: image.buffer,
     }
-    
+
     const s3 = new AWS.S3();
 
     s3.upload(params, (err, data) => {

@@ -61,7 +61,7 @@ app.use('/verify', require('./routes/verify'));
 app.use(verifyJWT);
 
 app.use('/users', require('./routes/user'));
-app.use('/college', require('./routes/college'));
+app.use('/colleges', require('./routes/college'));
 app.use('/profile', require('./routes/profile'));
 app.use('/checkout', require('./routes/checkout'));
 
@@ -206,7 +206,7 @@ io.on('connection', socket => {
 
 /* require('./estimator/estimator').estimateScores(); */
 
-const getColleges = async () => {
+/* const getColleges = async () => {
  
     const colleges = await College.find().exec();
 
@@ -222,3 +222,4 @@ const getColleges = async () => {
 
     
 }
+ */
