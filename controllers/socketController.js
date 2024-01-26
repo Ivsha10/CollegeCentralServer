@@ -347,7 +347,11 @@ const handleUserSocials = async (socket, id) => {
                 id, fullName, role, imageUrl, profile
             }
 
-            otherUsers.push(friendObj);
+            const userProfile = foundUser.role === 'player' ? foundUser.playerProfile : foundUser.coachProfile;
+            if(profile.sport === userProfile.sport) {
+                otherUsers.push(friendObj);
+
+            }
         }
     })
 

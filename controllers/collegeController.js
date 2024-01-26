@@ -97,26 +97,25 @@ const getAllColleges = async (req, res) => {
     try {
         let colleges = await College.find().exec();
         colleges.forEach(clg => {
-            
+
             let logoName = clg.logo;
-            if(!clg.logo) clg.logo = 'https://collegecentralbucket.s3.amazonaws.com/colleges/logo/NOLOGO';
+            if (!clg.logo) clg.logo = 'https://collegecentralbucket.s3.amazonaws.com/colleges/logo/NOLOGO';
             const stringArr = clg.logo.split('/');
             logoName = stringArr[4];
-            console.log(logoName);
             /* logoName = stringArr.indexOf(stringArr.length - 1);
             if(logoName === undefined) {logoName = 'logo';}
             logoName = logoName.replace(' ', '+'); */
             clg.logo = `${bucketUrl}/${clg.name}/logo/${logoName}`;
             clg.images.forEach(img => {
                 let imgName = img;
-                if(!imgName) imgName = '';
+                if (!imgName) imgName = '';
                 let newImg = `${bucketUrl}/${clg.name}/${imgName}`;
 
                 clg.images.push(newImg)
 
             })
 
-           clg.images =  clg.images.filter(img => img.includes(bucketUrl));
+            clg.images = clg.images.filter(img => img.includes(bucketUrl));
         })
         return res.json(colleges);
     } catch (err) {
@@ -187,14 +186,12 @@ const updateCollege = async (req, res) => {
 
 const addFacilities = async (req, res) => {
 
-
-    let images = await req.files;
     const id = req.params.id;
-
+    console.log(id);
+    const images = req.files;
     const foundCollege = await College.findById(id).exec();
+    foundCollege.images = [];
 
-
-    const facilities = (req.body.facilities);
 
     const s3 = new AWS.S3();
 
@@ -203,7 +200,7 @@ const addFacilities = async (req, res) => {
         const image = images[val];
         const params = {
             Bucket: `collegecentralbucket/colleges/${foundCollege.name}`,
-            Key: image.originalname,
+            Key: image.originalname.split(' ').join(''),
             Body: image.buffer,
         }
 
@@ -214,75 +211,47 @@ const addFacilities = async (req, res) => {
             }
 
             else {
-                console.log(`File ${val + 1} uploaded successfully`);
+                console.log(`File ${parseInt(val) + 1} uploaded successfully`);
                 if (val < images.length - 1) {
-                    val++;
-                    UPLOAD(val)
                 } else {
                     console.log('ALL FILES UPLOADED SUCCESSFULLY!');
                 }
 
             }
         });
+
+        foundCollege.images.push(image.originalname.split(' ').join(''));
     }
 
 
 
-    try {
-        if (Array.isArray(facilities)) {
-
-            for (let i = 0; i < facilities.length; i++) {
-                let facility = JSON.parse(facilities[i]);
-                facilities[i] = facility;
-
-                let currentFacilityNames = foundCollege.facilities.map(fac => fac.name);
-                console.log(currentFacilityNames);
-                if (!currentFacilityNames.includes(facility.name)) {
-                    foundCollege.facilities.push(facility);
-                } else {
-                    console.log('Facility already exists!');
-                    return res.status(409).json({ 'error': 'Facility already exists in our database' })
-                }
-
-            }
-
-        } else {
-            let facility = JSON.parse(facilities);
-            let currentFacilityNames = foundCollege.facilities.map(fac => fac.name);
-            if (!currentFacilityNames.includes(facility.name)) {
-                foundCollege.facilities.push(facility);
-            } else {
-                console.log('Facility already exists!');
-                return res.status(409).json({ 'error': 'Facility already exists in our database' })
-            }
-        }
-    } catch (error) {
-        return res.sendStatus(500);
+    for (let image in images) {
+        UPLOAD(image)
     }
+
+
 
 
     await foundCollege.save();
-    UPLOAD(0);
 
-    return res.status(200).json({ 'message': `Facilities added successfully!`, 'facilities': foundCollege.facilities });
-
-
-    const getImageDemo = () => {
-        const url = s3.getSignedUrl('getObject', {
-            Bucket: 'collegecentralbucket',
-            Key: 'Visa.jpg',
-            Expires: 3600
-        })
-
-        return url;
-    }
-
-
-
-
-
+    return res.sendStatus(200);
 
 }
+
+const getImageDemo = () => {
+    const url = s3.getSignedUrl('getObject', {
+        Bucket: 'collegecentralbucket',
+        Key: 'Visa.jpg',
+        Expires: 3600
+    })
+
+    return url;
+}
+
+
+
+
+
 
 //THIS IS A DEMO API ---> DONT USE IN PRODUCTION 
 

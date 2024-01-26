@@ -36,7 +36,7 @@ const handleNewUser = async (req, res) => {
             'fullName': fullName,
             'email': username,
             'role': role,
-            'age': age,
+            'age': parseInt(age),
             'playerProfile': {...info},
             'credits':0
         

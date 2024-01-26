@@ -94,6 +94,7 @@ router.get('/:id', async (req, res) => {
 
 router.post('/:id', upload.single('video'), async (req, res) => {
 
+    console.log('posting');
     try {
         const video = req.file;
         

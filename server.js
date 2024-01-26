@@ -206,23 +206,7 @@ io.on('connection', socket => {
 
 /* require('./estimator/estimator').estimateScores(); */
 
-const getColleges = async () => {
- 
-    console.clear();
-    const colleges = await College.find().exec();
 
-    let majors = new Set();
-
-    colleges.forEach(col => {
-
-        col.majors.forEach(major => {
-        
-            majors.add(major.toLowerCase());
-        })
-    }) 
-
-    console.log(majors);
-}
 
 
 
