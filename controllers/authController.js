@@ -38,7 +38,7 @@ const handleSignIn = async (req, res) => {
             const result = foundUser.save();
 
             res.cookie('jwt', refreshToken, { httpOnly: true, sameSite: 'None', secure: true, maxAge: 1000 * 60 * 60 * 24 });
-            res.json({'accessToken': accessToken, 'message':'Signed In Succesfully', 'role':role, "id":id, 'isOtp': isOtp /* 'sentFriendRequests': sentFriendRequests, 'receivedFriendRequests': receivedFriendRequests */});
+            res.json({'accessToken': accessToken, 'message':'Signed In Succesfully', 'role':role, "id":id, 'isOtp': isOtp, 'sport': role === 'player' ? foundUser.playerProfile.sport : foundUser.coachProfile.sport /* 'sentFriendRequests': sentFriendRequests, 'receivedFriendRequests': receivedFriendRequests */});
             console.log('Signed In');
         } else {
             return res.sendStatus(403);

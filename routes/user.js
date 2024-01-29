@@ -119,5 +119,36 @@ router.put('/', async (req, res) => {
     res.json(filteredUsers);
 });
 
+router.get('/players/:id', async (req, res) => {
+
+    try {
+        const id = req.params.id;
+        const foundCoach = await User.findById(id).exec();
+    
+        const coachSport = foundCoach.coachProfile.sport;
+    
+        let possiblePlayers = [];
+    
+        const allPlayers = (await User.find().exec()).filter(user => user.role === 'player');
+    
+        allPlayers.forEach(player => {
+            if(player.playerProfile.sport === coachSport) {
+                player.password = '';
+                const pictureUrl = `https://collegecentralbucket.s3.amazonaws.com/users/players/${player.username}/${player.profilePicture}`;
+                player.profilePicture = pictureUrl;
+
+                possiblePlayers.push(player);
+
+            }
+        })
+    
+        res.json({'players': possiblePlayers});
+    } catch (err) {
+        console.log(err);
+        res.status(500).json(err);
+    }
+   
+
+})
 
 module.exports = router;

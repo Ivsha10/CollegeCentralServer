@@ -366,64 +366,74 @@ const handleUserSocials = async (socket, id) => {
 
 const handleFriendRequest = async (io, socket, data, firebaseAdmin) => {
 
+
     const sender = await User.findById(data.userId).exec();
     const receiver = await User.findById(data.friendId).exec();
 
-    if (!sender.sentFriendRequests.includes(data.friendId)) {
-        sender.sentFriendRequests.push(data.friendId);
-        await sender.save();
+    const credits = sender.credits;
+
+    if(sender.role === 'coach' || credits > 0) {
+        if (!sender.sentFriendRequests.includes(data.friendId)) {
+            sender.sentFriendRequests.push(data.friendId);
+            await sender.save();
+        }
+    
+        if (!receiver.sentFriendRequests.includes(data.userId)) {
+            receiver.receivedFriendRequests.push(data.userId);
+            await receiver.save();
+        }
+    
+        if (sender.role === 'player') {
+            sender.credits = sender.credits - 1;
+            await sender.save();
+        }
+    
+        if (receiver.role === 'player') {
+            receiver.credits = receiver.credits - 1;
+            await receiver.save();
+        }
+    
+        handleUserSocials(socket, data.userId);
+    
+        let time = new Intl.DateTimeFormat('default', {
+            hour: 'numeric',
+            minute: 'numeric'
+        }).format(new Date());
+    
+        const fullName = sender.fullName ? sender.fullName : sender.username;
+    
+        const deviceTokens = receiver.deviceTokens;
+    
+    
+        const payload = {
+            data: {
+                type: 'request',
+                id: sender.id
+            },
+            notification: {
+                title: 'Friend Request',
+                body: `${sender.fullName} sent you a friend request!`,
+    
+            },
+            token: deviceTokens[0]
+        }
+    
+    
+        try {
+            const response = await firebaseAdmin.messaging().send(payload);
+            console.log('SUCCESS:', response);
+        } catch (error) {
+            console.log('ERROR:', error);
+        }
+    
+        socket.emit('hasCredits', {hasCredits: true, credits: sender.role === 'player' ? sender.credits : 'unlimited'});
+        io.to(receiver.socketId).emit('newFriendRequest', { time: time, message: `${fullName} sent you a friend request!` });
+    }
+     else {
+        socket.emit('hasCredits', {hasCredits:false});
     }
 
-    if (!receiver.sentFriendRequests.includes(data.userId)) {
-        receiver.receivedFriendRequests.push(data.userId);
-        await receiver.save();
-    }
-
-    if (sender.role === 'player') {
-        sender.credits = sender.credits - 1;
-        await sender.save();
-    }
-
-    if (receiver.role === 'player') {
-        receiver.credits = receiver.credits - 1;
-        await receiver.save();
-    }
-
-    handleUserSocials(socket, data.userId);
-
-    let time = new Intl.DateTimeFormat('default', {
-        hour: 'numeric',
-        minute: 'numeric'
-    }).format(new Date());
-
-    const fullName = sender.fullName ? sender.fullName : sender.username;
-
-    const deviceTokens = receiver.deviceTokens;
-
-
-    const payload = {
-        data: {
-            type: 'request',
-            id: sender.id
-        },
-        notification: {
-            title: 'Friend Request',
-            body: `${sender.fullName} sent you a friend request!`,
-
-        },
-        token: deviceTokens[0]
-    }
-
-
-    try {
-        const response = await firebaseAdmin.messaging().send(payload);
-        console.log('SUCCESS:', response);
-    } catch (error) {
-        console.log('ERROR:', error);
-    }
-
-
-    io.to(receiver.socketId).emit('newFriendRequest', { time: time, message: `${fullName} sent you a friend request!` });
+   
 }
 
 
@@ -433,6 +443,8 @@ const handleAcceptRequest = async (io, socket, data, firebaseAdmin) => {
 
     const foundUser = await User.findById(userId).exec();
     const foundFriend = await User.findById(friendId).exec();
+
+    
 
     const newReceived = foundUser.receivedFriendRequests.filter(id => id !== friendId);
     const newSent = foundFriend.sentFriendRequests.filter(id => id !== userId);
