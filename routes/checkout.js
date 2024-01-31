@@ -28,8 +28,8 @@ router.post('/:id', async (req, res) => {
                 },
             ],
             mode: 'payment',
-            success_url: `http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}`, // Replace with your success URL
-            cancel_url: 'http://localhost:3000/credits', // Replace with your cancel URL
+            success_url: `https://thecollegecentral.com/success?session_id={CHECKOUT_SESSION_ID}`, // Replace with your success URL
+            cancel_url: 'https://thecollegecentral.com/credits', // Replace with your cancel URL
         })
 
         foundUser.lastPaymentSession = { sessionId: session.id, amount: amount };
